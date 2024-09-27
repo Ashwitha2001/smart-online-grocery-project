@@ -1,12 +1,46 @@
-<!-- category_detail.html -->
-<h2>{{ category.name }}</h2>
-<div class="product-list">
-    {% for product in products %}
-        <div class="product-item">
-            <h3>{{ product.name }}</h3>
-            <p>{{ product.description }}</p>
-            <p>Price: ₹{{ product.price }}</p>
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" width="200" height="200">
-        </div>
-    {% endfor %}
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category.name }} - Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .product-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            width: calc(33% - 20px);
+            background-color: white;
+            text-align: center;
+        }
+        .product-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>{{ category.name }}</h2>
+    <div class="product-list">
+        {% for product in products %}
+            <div class="product-item">
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description }}</p>
+                <p>Price: ₹{{ product.price }}</p>
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

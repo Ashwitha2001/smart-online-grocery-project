@@ -7,6 +7,44 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
+         /* Additional styling for header */
+        header {
+            background-color: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Navigation styles */
+        nav {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav li {
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #cce5ff;
+        }
         /* Additional styling for product layout */
         .product-list {
             display: flex;
@@ -111,6 +149,13 @@
             left: 10px;
             bottom: 10px;
         }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #333; /* Footer text color */
+            font-weight: bold; /* Bold footer text */
+        }
     </style>
 </head>
 <body>
@@ -209,9 +254,9 @@
         <h2><a href="{% url 'categories' %}" class="categories-btn">Categories</a></h2>
     </section>
 
-    <footer>
-        <p>&copy; 2024 Smart Grocery</p>
-    </footer>
+    <div class="footer">
+        <p>&copy; 2024 Smart Grocery</p> <!-- Company name -->
+    </div>
 
     <!-- Notification element -->
     <div id="notification" class="notification"></div>

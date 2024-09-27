@@ -1,5 +1,3 @@
-<!-- categories.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,21 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Categories - Smart Grocery</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
         .category-list, .subcategory-list {
             list-style-type: none;
             padding: 0;
         }
-
-        .category-item, .subcategory-item {
-            margin-bottom: 10px;
+        h1 {
+            color: #35424a;
         }
-
-        .subcategory-list {
-            padding-left: 20px;
-        }
-
         h2 {
             margin-top: 20px;
+            color: #27ae60;
+        }
+        a {
+            text-decoration: none;
+            color: #35424a;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #aaa;
         }
     </style>
 </head>
@@ -30,11 +40,11 @@
 
     <ul class="category-list">
         {% for category in categories %}
-            <li class="category-item">
+            <li>
                 <h2>{{ category.name }}</h2>
                 <ul class="subcategory-list">
                     {% for subcategory in category.subcategories.all %}
-                        <li class="subcategory-item">
+                        <li>
                             <a href="{% url 'subcategory_products' subcategory.id %}">{{ subcategory.name }}</a>
                         </li>
                     {% endfor %}

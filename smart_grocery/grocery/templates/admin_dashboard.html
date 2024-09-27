@@ -1,58 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <style>
+       body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #35424a;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        nav {
+            background: #82898e;
+            padding: 15px;
+            text-align: center;
+            margin-top: 10px;
+            display: flex; /* Use flexbox to align items */
+            justify-content: center; /* Center items horizontally */
+            flex-wrap: wrap; /* Allow items to wrap to the next line if needed */
+        }
+        nav a {
+            color: #ffffff;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        h2, h3 {
+            color: #35424a;
+            margin-top: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        li a {
+            color: #35424a;
+            text-decoration: none;
+        }
+        li a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #35424a;
+            color: #ffffff;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Admin Dashboard</h1>
-    <ul>
-        <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'vendor_dashboard' %}">Vendor Dashboard</a></li>
-        <li><a href="{% url 'customer_dashboard' %}">Customer Dashboard</a></li>
-        <li><a href="{% url 'delivery_personnel_dashboard' %}">Delivery Personnel Dashboard</a></li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
-    </ul>
+    <header>
+        <h1>Admin Dashboard</h1>
+    </header>
 
-    <h3>Total Users: {{ total_users }}</h3>
-    <h3>Total Orders: {{ total_orders }}</h3>
-    <h3>Total Deliveries: {{ delivery_count }}</h3>
-    <h3>Total Products: {{ product_count }}</h3>
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'vendor_dashboard' %}">Vendor Dashboard</a>
+        <a href="{% url 'customer_dashboard' %}">Customer Dashboard</a>
+        <a href="{% url 'delivery_personnel_dashboard' %}">Delivery Personnel Dashboard</a>
+        <a href="{% url 'delivery_management' %}">Manage Deliveries</a><br>
+        <a href="{% url 'logout' %}">Logout</a>
+    </nav>
 
-    <h2>All Products</h2>
-    <ul>
-        {% if products %}
-            {% for product in products %}
-                <li>{{ product.name }} - {{ product.stock }} in stock</li>
-            {% endfor %}
-        {% else %}
-            <li>No products available.</li>
-        {% endif %}
-    </ul>
+    <div class="container">
+        <h3>Total Users: {{ total_users }}</h3>
+        <h3>Total Orders: {{ total_orders }}</h3>
+        <h3>Total Deliveries: {{ delivery_count }}</h3>
+        <h3>Total Products: {{ product_count }}</h3>
 
-    <h2>Manage Users</h2>
-    <ul>
-        <li><a href="{% url 'user_list' %}">View All Users</a></li>
-        <li><a href="{% url 'add_user' %}">Add New User</a></li>
-    </ul>
+        <h2>All Products</h2>
+        <ul>
+            {% if products %}
+                {% for product in products %}
+                    <li>{{ product.name }} - {{ product.stock }} in stock</li>
+                {% endfor %}
+            {% else %}
+                <li>No products available.</li>
+            {% endif %}
+        </ul>
+        
+        
+        <h2>Manage Users</h2>
+        <ul>
+            <li><a href="{% url 'user_list' %}">View All Users</a></li>
+            <li><a href="{% url 'add_user' %}">Add New User</a></li>
+        </ul>
 
-    <h2>Manage Products</h2>
-    <ul>
-        <li><a href="{% url 'add_product' %}">Add New Product</a></li>
-        <li><a href="{% url 'product_list' %}">View All Products</a></li>
-    </ul>
+        <h2>Manage Products</h2>
+        <ul>
+            <li><a href="{% url 'add_product' %}">Add New Product</a></li>
+            <li><a href="{% url 'product_list' %}">View All Products</a></li>
+        </ul>
 
-    <h2>Manage Orders</h2>
-    <ul>
-        <li><a href="{% url 'order_list' %}">View All Orders</a></li>
-    </ul>
+        <h2>Manage Orders</h2>
+        <ul>
+            <li><a href="{% url 'order_list' %}">View All Orders</a></li>
+        </ul>
 
-    <h2>Reports</h2>
-    <ul>
-        <li><a href="{% url 'sales_report' %}">Sales Report</a></li>
-        <li><a href="{% url 'user_activity_report' %}">User Activity Report</a></li>
-        <li><a href="{% url 'delivery_performance_report' %}">Delivery Performance Report</a></li>
-    </ul>
+        <h2>Reports</h2>
+        <ul>
+            <li><a href="{% url 'sales_report' %}">Sales Report</a></li>
+            <li><a href="{% url 'user_activity_report' %}">User Activity Report</a></li>
+            <li><a href="{% url 'delivery_performance_report' %}">Delivery Performance Report</a></li>
+        </ul>
+    </div>
 
-    <a href="{% url 'delivery_management' %}">Manage Deliveries</a><br>
+    <footer>
+        <p>&copy; {{ 2024 }} Smart Grocery</p>
+    </footer>
 </body>
 </html>

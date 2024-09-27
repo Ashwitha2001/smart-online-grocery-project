@@ -1,26 +1,107 @@
-<h1>{{ product.name }}</h1>
-<img src="{{ product.image.url }}" alt="{{ product.name }}">
-<p>Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - Product Details</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
 
-{% if product.stock > 0 %}
-    <form method="POST" action="{% url 'add_to_cart' product.id %}">
-        {% csrf_token %}
-        <label for="quantity">Quantity:</label>
-        <input type="number" name="quantity" min="1" max="{{ product.stock }}" value="1">
-        <button type="submit">Add to Cart</button>
-    </form>
-    <p>Stock: {{ product.stock }} units available</p>
-{% else %}
-    <p style="color: red;">Out of Stock</p>
-{% endif %}
+        h1 {
+            color: #333;
+        }
 
-<h2>Reviews</h2>
-{% for review in reviews %}
-    <div class="review">
-        <strong>{{ review.customer.user.username }}:</strong>
-        <p>Rating: {{ review.rating }} / 5</p>
-        <p>{{ review.comment }}</p>
-    </div>
-{% empty %}
-    <p>No reviews yet.</p>
-{% endfor %}
+        img {
+            width: 300px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .rating {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        form {
+            margin-top: 10px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="number"] {
+            width: 60px;
+            margin-left: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        .review {
+            margin-top: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .review strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .out-of-stock {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ product.name }}</h1>
+    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+    <p class="rating">Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
+
+    {% if product.stock > 0 %}
+        <form method="POST" action="{% url 'add_to_cart' product.id %}">
+            {% csrf_token %}
+            <label for="quantity">Quantity:</label>
+            <input type="number" name="quantity" min="0" max="{{ product.stock }}" value="0">
+            <button type="submit">Add to Cart</button>
+        </form>
+        <p>Stock: {{ product.stock }} units available</p>
+    {% else %}
+        <p class="out-of-stock">Out of Stock</p>
+    {% endif %}
+
+    <h2>Reviews</h2>
+    {% for review in reviews %}
+        <div class="review">
+            <strong>{{ review.customer.user.username }}:</strong>
+            <p>Rating: {{ review.rating }} / 5</p>
+            <p>{{ review.comment }}</p>
+        </div>
+    {% empty %}
+        <p>No reviews yet.</p>
+    {% endfor %}
+</body>
+</html>

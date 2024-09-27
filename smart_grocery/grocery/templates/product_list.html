@@ -7,38 +7,66 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
         .product-list {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             padding: 20px;
+            justify-content: center;
         }
 
-        .product-item {
+        .product {
             border: 1px solid #ddd;
+            border-radius: 8px;
             padding: 10px;
             width: 250px;
             text-align: center;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .product-item img {
+        .product img {
             width: 200px;
             height: 200px;
             object-fit: cover;
             margin-bottom: 10px;
+            border-radius: 8px;
         }
 
-        .product-item h3 {
+        .product h3 {
             margin: 10px 0;
+            color: #28a745;
         }
 
-        .product-item p {
+        .product p {
             margin: 5px 0;
+            color: #666;
         }
 
-        .quantity-input {
-            width: 50px;
-            margin-bottom: 10px;
+        .add-to-cart-btn, button {
+            padding: 10px 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .add-to-cart-btn:hover, button:hover {
+            background: #218838;
         }
 
         .fixed-buttons {
@@ -96,13 +124,10 @@
                     <a href="{% url 'product_detail' product.id %}">View Details</a>
                     <p>{{ product.description }}</p>
                     <p>Price: ₹{{ product.price }}</p>
-                    <button class="add-to-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
-
-                    <!-- Quantity input and Add to Cart form -->
-                    <form class="add-to-cart-form" data-product-id="{{ product.id }}" method="POST" action="{% url 'add_to_cart' product.id %}">
+                    <form class="add-to-cart-form" method="POST" action="{% url 'add_to_cart' product.id %}">
                         {% csrf_token %}
                         <label for="quantity-{{ product.id }}">Quantity:</label>
-                        <input type="number" id="quantity-{{ product.id }}" name="quantity" value="1" min="1" max="{{ product.stock }}">
+                        <input type="number" id="quantity-{{ product.id }}" name="quantity" value="0" min="0" max="{{ product.stock }}" class="quantity-input">
                         <button type="submit">Add to Cart</button>
                     </form>
 
@@ -124,37 +149,36 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // When "Add to Cart" is clicked
+            $('.add-to-cart-btn').on('click', function(e) {
+                e.preventDefault(); // Prevent page reload
 
-<script>
-    $(document).ready(function() {
-        // When "Add to Cart" is clicked
-        $('.add-to-cart-btn').on('click', function(e) {
-            e.preventDefault(); // Prevent page reload
+                var productId = $(this).data('product-id');
+                var quantity = 1; // Default quantity
 
-            var productId = $(this).data('product-id');
-            var quantity = 1; // Default quantity, you can change this if needed
-
-            $.ajax({
-                type: 'POST',
-                url: '/grocery/add-to-cart/' + productId + '/',
-                data: {
-                    quantity: quantity,
-                    csrfmiddlewaretoken: '{{ csrf_token }}' // Include CSRF token for security
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        alert('Product added to cart!');
-                        // You can update the cart count or other UI elements here if needed
-                    } else {
-                        alert('Failed to add to cart.');
+                $.ajax({
+                    type: 'POST',
+                    url: '/grocery/add-to-cart/' + productId + '/',
+                    data: {
+                        quantity: quantity,
+                        csrfmiddlewaretoken: '{{ csrf_token }}' // Include CSRF token for security
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            alert('Product added to cart!');
+                            // Update UI if needed
+                        } else {
+                            alert('Failed to add to cart.');
+                        }
+                    },
+                    error: function() {
+                        alert('Error adding product to cart.');
                     }
-                },
-                error: function() {
-                    alert('Error adding product to cart.');
-                }
+                });
             });
         });
-    });
-</script>
+    </script>
 </body>
 </html>

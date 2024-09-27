@@ -1,7 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delivery Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            color: #444;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: inline;
+            margin-right: 15px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .no-orders {
+            text-align: center;
+            font-size: 18px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
     <h1>Delivery Management</h1>
@@ -11,7 +82,7 @@
     </ul>
 
     <h2>Orders Requiring Delivery Assignment</h2>
-    <table border="1">
+    <table>
         <thead>
             <tr>
                 <th>Order ID</th>
@@ -26,7 +97,7 @@
             {% for order in orders %}
             <tr>
                 <td>{{ order.id }}</td>
-                <td>{{ order.customer.user.get_full_name }}</td>
+                <td>{{ order.customer.user.username }}</td>
                 <td>{{ order.customer.address }}</td>
                 <td>{{ order.ordered_at }}</td>
                 <td>
@@ -45,8 +116,7 @@
     </table>
 
     {% if not orders %}
-        <p>No orders requiring delivery assignment.</p>
+        <p class="no-orders">No orders requiring delivery assignment.</p>
     {% endif %}
-
 </body>
 </html>

@@ -2,6 +2,47 @@
 <html>
 <head>
     <title>Add Product</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #495057;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            color: #28a745; /* Green color */
+        }
+        form {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            max-width: 400px;
+            width: 100%;
+            margin-bottom: 20px; /* Adds space below the form */
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px; /* Adds space above the button */
+        }
+        .back-link {
+            display: block; /* Makes the link a block element */
+            margin-top: 10px; /* Adds space above the link */
+            color: #007bff; /* Bootstrap link color */
+            text-decoration: none; /* Remove underline */
+        }
+        .back-link:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+    </style>
 </head>
 <body>
     <h1>Add a New Product</h1>
@@ -13,6 +54,6 @@
         <button type="submit">Add Product</button>
     </form>
 
-    <a href="{% url 'vendor_dashboard' %}">Back to Dashboard</a>
+    <a href="{% url 'vendor_dashboard' %}" class="back-link">Back to Dashboard</a>
 </body>
 </html>

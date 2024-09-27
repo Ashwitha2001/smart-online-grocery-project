@@ -1,27 +1,32 @@
-<!-- templates/grocery/_search_filter.html -->
-<form method="GET" action="{% url 'home' %}">
-    <div>
-        <label for="search">Search Products:</label>
-        <input type="text" id="search" name="q" value="{{ query|default:'' }}" placeholder="Search by name or description">
+<form method="GET" action="{% url 'home' %}" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); max-width: 100%;">
+
+    <!-- Search input -->
+    <div style="flex-grow: 1; position: relative;">
+        <input type="text" id="search" name="q" value="{{ query|default:'' }}" placeholder="Search products..." style="width: 100%; padding: 8px 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
     </div>
 
-    <div>
-        <label for="category">Filter by Category:</label>
-        <select id="category" name="category">
-            <option value="">All Categories</option>
+    <!-- Category filter -->
+    <div style="flex-grow: 1;">
+        <select id="category" name="category" style="width: 100%; padding: 8px 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
+            <option value="">Category</option>
             {% for category in categories %}
                 <option value="{{ category.id }}" {% if category.id == category_id %}selected{% endif %}>{{ category.name }}</option>
             {% endfor %}
         </select>
     </div>
 
-    <div>
-        <label for="price_min">Min Price:</label>
-        <input type="number" id="price_min" name="price_min" value="{{ price_min|default:'' }}" min="0">
-
-        <label for="price_max">Max Price:</label>
-        <input type="number" id="price_max" name="price_max" value="{{ price_max|default:'' }}" min="0">
+    <!-- Min price filter -->
+    <div style="flex-grow: 0.5;">
+        <input type="number" id="price_min" name="price_min" value="{{ price_min|default:'' }}" placeholder="Min" min="0" style="width: 100%; padding: 8px 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
     </div>
 
-    <button type="submit">Filter</button>
+    <!-- Max price filter -->
+    <div style="flex-grow: 0.5;">
+        <input type="number" id="price_max" name="price_max" value="{{ price_max|default:'' }}" placeholder="Max" min="0" style="width: 100%; padding: 8px 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
+    </div>
+
+    <!-- Filter button -->
+    <button type="submit" style="background-color: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; flex-shrink: 0;">
+        <i class="fa fa-search"></i> <!-- Search icon (optional) -->
+    </button>
 </form>

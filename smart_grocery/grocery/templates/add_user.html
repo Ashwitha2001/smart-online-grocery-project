@@ -2,24 +2,68 @@
 <html>
 <head>
     <title>Add User</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #495057;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            color: #28a745; /* Green color */
+        }
+        form {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            max-width: 400px;
+            width: 100%;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .links {
+            margin-top: 20px; /* Adds spacing above the links */
+        }
+        .links a {
+            display: block; /* Stack the links vertically */
+            margin: 5px 0; /* Adds space between the links */
+            color: #007bff; /* Bootstrap link color */
+            text-decoration: none; /* Remove underline */
+        }
+        .links a:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+    </style>
 </head>
 <body>
     <h1>Add New User</h1>
     <form method="POST">
         {% csrf_token %}
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br>
+        <input type="text" id="username" name="username" required style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ced4da; border-radius: 5px;"><br>
 
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br>
+        <input type="email" id="email" name="email" required style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ced4da; border-radius: 5px;"><br>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br>
+        <input type="password" id="password" name="password" required style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ced4da; border-radius: 5px;"><br>
 
         <button type="submit">Add User</button>
     </form>
 
-    <a href="{% url 'user_list' %}">Back to User List</a><br>
-    <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+    <div class="links">
+        <a href="{% url 'user_list' %}">Back to User List</a>
+        <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+    </div>
 </body>
 </html>

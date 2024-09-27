@@ -63,9 +63,37 @@ class OrderItemForm(forms.ModelForm):
         fields = ['order', 'product', 'quantity', 'price']
 
 class CustomerForm(forms.ModelForm):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Email'}))  # User's email field
+
     class Meta:
-        model = Customer
-        fields = ['address','phone_number']
+        model = Customer  # Customer-specific fields
+        fields = ['address', 'phone_number']  # Only Customer fields
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # Get the user instance if provided
+        super().__init__(*args, **kwargs)
+        
+        if self.user:
+            self.fields['email'].initial = self.user.email  # Set initial email value
+
+    def save(self, commit=True):
+        # Save email field to the User model
+        if self.user:
+            self.user.email = self.cleaned_data['email']
+            self.user.save()  # Save the user's email
+
+        # Update the Customer instance and save
+        customer = super().save(commit=commit)
+
+        # Update the Profile model with the same phone_number and address
+        if self.user and hasattr(self.user, 'profile'):
+            profile = self.user.profile
+            profile.phone_number = self.cleaned_data['phone_number']  # Sync phone number
+            profile.address = self.cleaned_data['address']  # Sync address
+            profile.save()  # Save the updated profile data
+
+        return customer
+
 
 class CheckoutForm(forms.Form):
     delivery_address = forms.CharField(widget=forms.Textarea, max_length=500)

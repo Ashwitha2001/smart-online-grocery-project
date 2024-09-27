@@ -1,7 +1,55 @@
-{% for order in orders %}
-    <div>
-        <h2>Order #{{ order.id }}</h2>
-        <p>Status: {{ order.status }}</p>
-        <a href="{% url 'order_detail' order.id %}">View Details</a>
-    </div>
-{% endfor %}
+<h1>Your Orders</h1>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        color: #495057;
+        padding: 20px;
+    }
+    .order-container {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+    }
+    .order-container h2 {
+        color: #28a745; /* Green color for order ID */
+    }
+    .order-container p {
+        margin: 5px 0;
+    }
+    .view-details {
+        color: #007bff; /* Bootstrap link color */
+        text-decoration: none;
+        margin-top: 10px;
+        display: inline-block; /* Makes link block-level for better spacing */
+    }
+    .view-details:hover {
+        text-decoration: underline; /* Underline on hover */
+    }
+    .back-link {
+        margin-top: 20px;
+        display: block;
+        color: #007bff; /* Bootstrap link color */
+        text-decoration: none; /* Remove underline */
+        text-align: center; /* Center the link */
+    }
+    .back-link:hover {
+        text-decoration: underline; /* Underline on hover */
+    }
+</style>
+
+{% if orders %}
+    {% for order in orders %}
+        <div class="order-container">
+            <h2>Order #{{ order.id }}</h2>
+            <p>Status: {{ order.status }}</p>
+            <p>Ordered At: {{ order.ordered_at|date:"F j, Y, g:i a" }}</p>
+            <a href="{% url 'order_detail' order.id %}" class="view-details">View Details</a>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>You have no orders yet.</p>
+{% endif %}
+<a href="/grocery/home/" class="back-link">Back to Home</a>

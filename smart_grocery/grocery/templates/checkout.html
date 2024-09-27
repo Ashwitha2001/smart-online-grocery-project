@@ -7,45 +7,41 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+        }
         .checkout-container {
             max-width: 600px;
             margin: auto;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            background-color: white;
         }
-
-        .checkout-container h1 {
-            margin-bottom: 20px;
-        }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
-
         .form-group input,
         .form-group textarea {
             width: 100%;
             padding: 8px;
             box-sizing: border-box;
         }
-
         .error-message {
             color: red;
             margin-bottom: 15px;
         }
-
         .total-summary {
             margin-top: 20px;
             border-top: 1px solid #ddd;
             padding-top: 10px;
         }
-
         .checkout-btn {
             background-color: #27ae60;
             color: #fff;
@@ -70,7 +66,6 @@
 
         <form action="{% url 'checkout' %}" method="post">
             {% csrf_token %}
-            
             <div class="form-group">
                 <label for="address">Address:</label>
                 <textarea id="address" name="address" rows="4">{{ customer.address|default_if_none:'' }}</textarea>

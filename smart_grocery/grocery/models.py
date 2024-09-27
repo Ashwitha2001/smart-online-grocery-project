@@ -65,7 +65,7 @@ class Customer(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('Placed', 'Order Placed'),
+        ('Placed','Placed'),
         ('Processing', 'Processing'),
         ('Shipped', 'Shipped'),
         ('Out for Delivery', 'Out for Delivery'),

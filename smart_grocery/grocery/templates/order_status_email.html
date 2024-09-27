@@ -1,3 +1,57 @@
-<!-- order_status_email.html -->
-<p>Your order with ID {{ order.id }} has been updated to {{ order.get_status_display }}.</p>
-<p>Delivery Personnel: {{ order.delivery_personnel }}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        p {
+            color: #555;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Status Update</h1>
+        <p>Dear {{ customer.name }},</p>
+        <p>Your order with ID <strong>{{ order.id }}</strong> has been updated to the following status:</p>
+        <p><strong>{{ order.status }}</strong></p>
+
+        <h2>Order Details:</h2>
+        <ul>
+            {% for item in order.items.all %}
+                <li>{{ item.product.name }} - Quantity: {{ item.quantity }} - Price: ₹{{ item.price }}</li>
+            {% endfor %}
+        </ul>
+
+        <p>Thank you for shopping with us!</p>
+        <div class="footer">
+            <p>&copy; {{ current_year }} Your Company Name</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,12 +1,11 @@
-<form method="post">
+<form method="post" style="text-align: center; margin-top: 20px;">
     {% csrf_token %}
-    <select name="status">
+    <select name="status" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
         <option value="Placed" {% if order.status == 'Placed' %}selected{% endif %}>Placed</option>
         <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
         <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
         <option value="Out for Delivery" {% if order.status == 'Out for Delivery' %}selected{% endif %}>Out for Delivery</option>
         <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
-        <option value="Canceled" {% if order.status == 'Canceled' %}selected{% endif %}>Canceled</option>
     </select>
-    <button type="submit">Update Status</button>
+    <button type="submit" style="padding: 5px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Update Status</button>
 </form>

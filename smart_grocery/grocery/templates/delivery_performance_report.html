@@ -1,43 +1,85 @@
-<table>
-    <thead>
-        <tr>
-            <th>Delivery ID</th>
-            <th>Delivery Partner</th>
-            <th>Status</th>
-            <th>Scheduled At</th>
-            <th>Delivered At</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for delivery in deliveries %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Performance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Delivery Performance</h1>
+    <table>
+        <thead>
             <tr>
-                <td>{{ delivery.id }}</td>
-                <td>
-                    {% if delivery.delivery_partner %}
-                        {{ delivery.delivery_partner.user.username }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>
-                    {% if delivery.status == "Delivered" %}
-                        <span style="color: green;">{{ delivery.status }}</span>
-                    {% else %}
-                        <span style="color: red;">{{ delivery.status }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ delivery.scheduled_at|date:"F d, Y, g:i a" }}</td>
-                <td>
-                    {% if delivery.delivered_at %}
-                        {{ delivery.delivered_at|date:"F d, Y, g:i a" }}
-                    {% else %}
-                        Not Delivered
-                    {% endif %}
-                </td>
+                <th>Delivery ID</th>
+                <th>Delivery Partner</th>
+                <th>Status</th>
+                <th>Scheduled At</th>
+                <th>Delivered At</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
-
+        </thead>
+        <tbody>
+            {% for delivery in deliveries %}
+                <tr>
+                    <td>{{ delivery.id }}</td>
+                    <td>
+                        {% if delivery.delivery_partner %}
+                            {{ delivery.delivery_partner.user.username }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="{% if delivery.status == 'Delivered' %}color: green;{% else %}color: red;{% endif %}">
+                            {{ delivery.status }}
+                        </span>
+                    </td>
+                    <td>{{ delivery.scheduled_at|date:"F d, Y, g:i a" }}</td>
+                    <td>
+                        {% if delivery.delivered_at %}
+                            {{ delivery.delivered_at|date:"F d, Y, g:i a" }}
+                        {% else %}
+                            Not Delivered
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+</body>
+</html>

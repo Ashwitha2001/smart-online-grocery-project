@@ -10,6 +10,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
 import razorpay
+from django.core.files.base import ContentFile
 from django.db.models import Q, Avg
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -100,22 +101,27 @@ def profile(request):
     # Your view logic here
     return render(request, 'profile.html')
 
-@csrf_exempt
+
 def register_view(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)  # Log the user in after registration
+            user = form.save()  # Save the user
             
-            # Check if a Customer profile already exists for the user
-            if not Customer.objects.filter(user=user).exists():
-                # Create a new customer profile only if it doesn't exist
-                Customer.objects.create(user=user, address='default address', phone_number='0000000000')
-
-            return redirect('create_customer_profile')  # Redirect to create profile page
+            # Check if the profile already exists
+            profile, created = Profile.objects.get_or_create(user=user)
+            if created:
+                # Only set the role if a new profile is created
+                profile.role = 'customer'  
+                profile.save()
+                messages.success(request, 'Registration successful. You can now log in.')
+            else:
+                messages.warning(request, 'Profile already exists. You can log in now.')
+                
+            return redirect('login')  # Redirect to login page after registration
     else:
-        form = UserRegistrationForm()
+        form = UserCreationForm()
+
     return render(request, 'registration/register.html', {'form': form})
 
 
@@ -137,34 +143,34 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
 
-
 @csrf_exempt
 @login_required
 def create_customer_profile(request):
-    # Check the user's role
+    # Redirect non-customer users to their respective dashboard
     if request.user.profile.role != 'customer':
-        # Redirect non-customers to their respective dashboard
         if request.user.profile.role == 'admin':
             return redirect('admin_dashboard')
         elif request.user.profile.role == 'vendor':
             return redirect('vendor_dashboard')
         elif request.user.profile.role == 'delivery_personnel':
-            return redirect('delivery_dashboard')
+            return redirect('delivery_personnel_dashboard')
         else:
-            return redirect('home')  # Fallback in case no specific role is matched
+            return redirect('home')
 
-    # If the user is a customer, proceed with profile creation
+    # Get or create the customer profile
     customer, created = Customer.objects.get_or_create(user=request.user)
-    
+
     if request.method == 'POST':
-        form = CustomerForm(request.POST, instance=customer)
+        form = CustomerForm(request.POST, instance=customer, user=request.user)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Profile updated successfully!')
             return redirect('home')
     else:
-        form = CustomerForm(instance=customer)
-    
+        form = CustomerForm(instance=customer, user=request.user)
+
     return render(request, 'registration/create_customer_profile.html', {'form': form})
+
 
 @login_required
 def logout_view(request):
@@ -314,7 +320,7 @@ def delivery_personnel_dashboard(request):
                 messages.error(request, 'Order not found or you do not have permission to update it.')
 
         context = {
-            'delivery_orders': delivery_orders,
+            'delivery_orders': delivery_orders.order_by('-ordered_at'),
             'order_count': order_count,
             'delivery_count': delivery_count,
         }
@@ -695,7 +701,7 @@ def order_detail(request, order_id):
         return redirect('home')  # Redirect or handle error if the order is not found
     
      # Define the list of past statuses
-    statuses = ['Order Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Canceled']
+    statuses = ['Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Canceled']
     
      # Determine which statuses are past based on the current order status
     past_statuses = statuses[:statuses.index(order.status) + 1]
@@ -707,12 +713,6 @@ def order_detail(request, order_id):
         'statuses': statuses,  # Pass delivery partner details to the template
         'past_statuses': past_statuses
     })
-
-
-
-def order_list(request):
-    orders = Order.objects.filter(customer=request.user.profile)
-    return render(request, 'order_list.html', {'orders': orders})
 
 
 @csrf_exempt
@@ -792,18 +792,9 @@ def place_order(request):
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def delivery_management(request):
-    # Fetch orders where delivery_partner is null
-    orders = Order.objects.filter(delivery_partner__isnull=True).order_by('-ordered_at').select_related('customer')
+    orders = Order.objects.filter(delivery_partner__isnull=True).order_by('-ordered_at')  # Sort in descending order by ordered_at
 
-    # Fetch all deliveries for tracking
-    deliveries = Delivery.objects.select_related('order', 'delivery_partner').all()
-
-    return render(request, 'delivery_management.html', {
-        'orders': orders,
-        'deliveries': deliveries
-    })
-
-
+    return render(request, 'delivery_management.html', {'orders': orders})
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
@@ -1053,6 +1044,14 @@ def payment_success(request):
             # Generate invoice as a PDF using the generate_invoice function
             invoice_pdf = generate_invoice(order)
 
+            # Create and save the invoice record in the database
+            invoice = Invoice(
+                order=order,
+                amount=order.total_amount,  # Make sure to adjust this based on your order model
+                pdf_file=ContentFile(invoice_pdf, name=f'invoice_{order.id}.pdf')
+            )
+            invoice.save()
+
             # Send the invoice via email
             customer_email = order.customer.user.email
             email_subject = 'Your Invoice from Smart Grocery'
@@ -1066,7 +1065,13 @@ def payment_success(request):
 
             # Attach the PDF invoice
             email.attach(f'invoice_{order.id}.pdf', invoice_pdf, 'application/pdf')
-            email.send()
+
+             # Send email and check if successful
+            if email.send():
+                invoice.email_sent = True
+                invoice.save()
+            else:
+                messages.error(request, "Failed to send invoice email.")
 
             # Clear the cart after successful payment
             Cart.objects.filter(customer=request.user.customer).delete()
@@ -1075,10 +1080,12 @@ def payment_success(request):
          
              # Redirect to leave review page with product IDs from the order
             product_ids = order.items.values_list('product_id', flat=True)  # Adjust based on your OrderItem model
-            return redirect('leave_review', product_ids=','.join(map(str, product_ids)))  # Ensure 'leave_review' URL is configured correctly
-            
+            product_ids_str = ','.join(map(str, product_ids)) 
+            return render(request, 'payment_success.html', {'order': order, 'product_ids':  product_ids_str})
+        
         except Order.DoesNotExist:
-            return JsonResponse({'error': 'Order not found'}, status=404)
+            messages.error(request, 'Order not found.')
+            return redirect('home')
     else:
         return redirect('home')
 
@@ -1131,7 +1138,7 @@ def user_list(request):
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def order_list(request):
-    orders = Order.objects.all()  # Fetch all orders
+    orders = Order.objects.all().order_by('-ordered_at')  # Fetch all orders
     return render(request, 'order_list.html', {'orders': orders})
 
 @login_required
@@ -1188,9 +1195,22 @@ def delivery_performance_report(request):
 
 @login_required
 def leave_review(request, product_ids):
-    product_ids_list = product_ids.split(',')
+    # Split and filter product IDs to ensure they are valid
+    product_ids_list = [pid for pid in product_ids.split(',') if pid.isdigit()]
+    
+    # Get the customer object
+    customer = get_object_or_404(Customer, user=request.user)
+
+    # Fetch all products the customer has purchased
+    purchased_product_ids = OrderItem.objects.filter(order__customer=customer).values_list('product_id', flat=True)
+
+    # If product_ids_list is empty or doesn't match purchased products, notify user
+    if not product_ids_list or not set(product_ids_list).issubset(set(purchased_product_ids)):
+        messages.error(request, "You can only leave reviews for products you have purchased.")
+        return redirect('home')
+
+    # Fetch the products based on the provided IDs
     products = Product.objects.filter(id__in=product_ids_list)
-    customer = get_object_or_404(Customer, user=request.user)  # Improved error handling
 
     if request.method == 'POST':
         for product in products:
@@ -1198,7 +1218,7 @@ def leave_review(request, product_ids):
             comment = request.POST.get(f'comment_{product.id}')
 
             # Check if the customer has purchased this product
-            if OrderItem.objects.filter(order__customer=customer, product=product).exists():
+            if product.id in purchased_product_ids:
                 if rating and comment:  # Ensure both rating and comment are provided
                     review, created = Review.objects.get_or_create(
                         product=product,
@@ -1215,7 +1235,9 @@ def leave_review(request, product_ids):
                         messages.success(request, f"Your review for {product.name} has been submitted.")
                 else:
                     messages.error(request, f"Please provide both a rating and a comment for {product.name}.")
+            else:
+                messages.error(request, f"You have not purchased {product.name}. Reviews can only be left for purchased products.")
 
-        return redirect('home')
+        return redirect('leave_review', product_ids=','.join(product_ids_list))
 
     return render(request, 'leave_review.html', {'products': products})

@@ -4,16 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e7f9e6;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #2ecc71;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Payment Successful!</h1>
     <p>Thank you for your payment. Enjoy your purchase!</p>
-    
-    <!-- Add a link to leave a review -->
     <p>
-        <a href="{% url 'leave_review' product_ids|join:',' %}">Leave a Review for Your Products</a>
+        <a href="{% url 'leave_review' product_ids=product_ids %}">Leave a Review for Your Products</a>
     </p>
-
     <a href="{% url 'home' %}">Back to Home</a>
 </body>
 </html>

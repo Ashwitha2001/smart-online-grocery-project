@@ -1,139 +1,190 @@
-<h1>Welcome to the Delivery Personnel Dashboard</h1>
-<ul>
-    <li><a href="{% url 'home' %}">Home</a></li>
-    <li><a href="{% url 'logout' %}">Logout</a></li>
-</ul>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Personnel Dashboard</title>
+    <style>
+       body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center; /* Centered title */
+            margin-bottom: 20px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #007bff;
+            padding: 10px 15px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .nav a:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .card {
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        tr:hover {
+            background-color: #f1f1f1; /* Highlight on hover */
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #333; /* Footer text color */
+            font-weight: bold; /* Bold footer text */
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Delivery Personnel Dashboard</h1>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li><br>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+    <h2>Orders to Deliver</h2>
+    <p>Number of Orders: {{ order_count }}</p>
+    <p>Number of Deliveries: {{ delivery_count }}</p>
 
-<h2>Orders to Deliver</h2>
-<p>Number of Orders: {{ order_count }}</p>
-
-<table>
-    <thead>
-        <tr>
-            <th>Order ID</th>
-            <th>Status</th>
-            <th>Total Amount</th>
-            <th>Customer Name</th>
-            <th>Customer Address</th>
-            <th>Vendor</th>
-            <th>Vendor Business Name</th>
-            <th>Vendor Contact</th>
-            <th>Vendor Address</th>
-            <th>Products</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody id="orders-table-body">
-        {% for order in delivery_orders %}
-            <tr id="order-{{ order.id }}">
-                <td>{{ order.id }}</td>
-                <td id="status-{{ order.id }}">{{ order.status }}</td>
-                <td>₹{{ order.total_amount }}</td>
-                <td>{{ order.customer.user.username }}</td>
-                <td>{{ order.customer.address }}</td>
-                <td>{{ order.vendor.profile.user.username }}</td>
-                <td>{{ order.vendor.business_name }}</td>
-                <td>{{ order.vendor.phone }}</td>
-                <td>{{ order.vendor.business_address }}</td>
-                <td>
-                    <ul>
-                        {% for item in order.items.all %}
-                            <li>{{ item.product.name }} - Quantity: {{ item.quantity }}</li>
-                        {% endfor %}
-                    </ul>
-                </td>
-                <td>
-                    <form method="post" action="{% url 'update_order_status' order.id %}">
-                        {% csrf_token %}
-                        <select name="status" onchange="this.form.submit()">
-                            {% for status in order.STATUS_CHOICES %}
-                                <option value="{{ status.0 }}" {% if order.status == status.0 %}selected{% endif %}>
-                                    {{ status.1 }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </form>
-                </td>
-            </tr>
-        {% empty %}
+    <table>
+        <thead>
             <tr>
-                <td colspan="11">No deliveries assigned.</td>
+                <th>Order ID</th>
+                <th>Status</th>
+                <th>Total Amount</th>
+                <th>Customer Name</th>
+                <th>Customer Address</th>
+                <th>Vendor</th>
+                <th>Vendor Business Name</th>
+                <th>Vendor Contact</th>
+                <th>Vendor Address</th>
+                <th>Products</th>
+                <th>Actions</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody id="orders-table-body">
+            {% for order in delivery_orders %}
+                <tr id="order-{{ order.id }}">
+                    <td>{{ order.id }}</td>
+                    <td id="status-{{ order.id }}">{{ order.status }}</td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td>{{ order.customer.user.username }}</td>
+                    <td>{{ order.customer.address }}</td>
+                    <td>{{ order.vendor.profile.user.username }}</td>
+                    <td>{{ order.vendor.business_name }}</td>
+                    <td>{{ order.vendor.phone }}</td>
+                    <td>{{ order.vendor.business_address }}</td>
+                    <td>
+                        <ul>
+                            {% for item in order.items.all %}
+                                <li>{{ item.product.name }} - Quantity: {{ item.quantity }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'update_order_status' order.id %}">
+                            {% csrf_token %}
+                            <select name="status" onchange="this.form.submit()">
+                                {% for status in order.STATUS_CHOICES %}
+                                    <option value="{{ status.0 }}" {% if order.status == status.0 %}selected{% endif %}>
+                                        {{ status.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="11">No deliveries assigned.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-<a href="{% url 'home' %}">Back to Home</a>
+    <a href="{% url 'home' %}">Back to Home</a>
 
-<style>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
+    <div class="footer">
+        <p>&copy; 2024 Smart Grocery</p> <!-- Company name -->
+    </div>
 
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
+    <script>
+        const deliveryStatusSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/delivery-status/'
+        );
 
-    th {
-        background-color: #f2f2f2;
-    }
+        deliveryStatusSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const orderId = data.order_id;
+            const status = data.status;
 
-    tbody tr:hover {
-        background-color: #f1f1f1;
-    }
+            const statusElement = document.getElementById(`status-${orderId}`);
+            if (statusElement) {
+                statusElement.textContent = status;
+            }
+        };
 
-    ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-</style>
+        async function updateOrderStatus(orderId, newStatus) {
+            const payload = JSON.stringify({ 'status': newStatus });
+            const csrfToken = getCookie('csrftoken');
 
-<script>
-    const deliveryStatusSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/delivery-status/'
-    );
+            try {
+                const response = await fetch(`/grocery/update-order-status/${orderId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: payload
+                });
 
-    deliveryStatusSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        const orderId = data.order_id;  // Use order_id instead of delivery_id
-        const status = data.status;
-
-        // Update the status on the page
-        const statusElement = document.getElementById(`status-${orderId}`);
-        if (statusElement) {
-            statusElement.textContent = status;
+                if (response.ok) {
+                    const data = await response.json();
+                    document.querySelector(`#status-${orderId}`).textContent = newStatus;
+                } else {
+                    console.error(`Failed to update order ${orderId}`);
+                }
+            } catch (error) {
+                console.error(`Error occurred: ${error}`);
+            }
         }
-    };
-
-    async function updateOrderStatus(orderId, newStatus) {
-    const payload = JSON.stringify({ 'status': newStatus });
-    const csrfToken = getCookie('csrftoken');
-
-    try {
-        const response = await fetch(`/grocery/update-order-status/${orderId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: payload
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log(`Order ${orderId} updated to ${newStatus}`);
-            // Update the status on the UI
-            document.querySelector(`#status-${orderId}`).textContent = newStatus;
-        } else {
-            console.error(`Failed to update order ${orderId}`);
-        }
-    } catch (error) {
-        console.error(`Error occurred: ${error}`);
-    }
-}
-</script>
+    </script>
+</body>
+</html>

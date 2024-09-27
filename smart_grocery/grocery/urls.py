@@ -45,7 +45,7 @@ urlpatterns = [
     path('place_order/', views.place_order, name='place_order'),
     path('order_success/<int:order_id>/', views.order_success, name='order_success'),
     path('order_detail/<int:order_id>/', views.order_detail, name='order_detail'),
-    path('orders/', views.order_list, name='order_list'),
+    path('order_list/', views.order_list, name='order_list'),
     path('order_history/', views.order_history, name='order_history'),
     path('order/<int:order_id>/', views.order_tracking, name='order_tracking'),
     path('update-order-status/<int:order_id>/', views.update_order_status, name='update_order_status'),
@@ -71,7 +71,7 @@ urlpatterns = [
     path('update-user/<int:user_id>/', views.update_user, name='update_user'),
     path('user-activity-report/', views.user_activity_report, name='user_activity_report'),
     path('delivery-performance-report/', views.delivery_performance_report, name='delivery_performance_report'),
-    path('order-list/', views.order_list, name='order_list'),
+   
     
     #
     path('leave-review/<str:product_ids>/', views.leave_review, name='leave_review'),
