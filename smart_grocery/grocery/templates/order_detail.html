@@ -1,3 +1,121 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c05d8a2722c433f75155899010f63e9266b2331b2dc0f503b884536e9691f9af
-size 3688
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <style>
+        .order-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 100%; 
+            margin-bottom: 20px; 
+        }
+
+        .status-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            position: relative;
+            z-index: 1;
+            background-color: transparent;
+            margin-right: 10px;
+        }
+
+        .status-circle.active {
+            background-color: lightblue;
+            border-color: lightblue;
+            color: white;
+        }
+
+        .status-circle.past {
+            background-color: lightblue;
+            border-color: lightblue;
+            color: white;
+        }
+
+        /* Connecting lines */
+        .status-line {
+            width: 2px;
+            background-color: lightblue;
+            height: 50px; /* Adjust this for proper spacing */
+            position: absolute;
+            left: 14px;
+            top: 30px;
+            z-index: 0;
+        }
+
+        .status-container:not(:last-child) .status-line {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Order Details</h1>
+
+    <p>Order ID: {{ order.id }}</p>
+    <p>Order Placed At: {{ order.ordered_at|date:"Y-m-d H:i:s" }}</p>
+    <p>Total Amount: ₹{{ order.total_amount }}</p>
+
+    <h2>Product Details:</h2>
+    <ul>
+        {% for item in order.items.all %}
+            <li>Product: {{ item.product.name }}<br>
+                Quantity: {{ item.quantity }}<br>
+                Price: ₹{{ item.price }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Customer Details:</h2>
+    <p>Name: {{ order.customer.user.username }}</p>
+    <p>Phone Number: {{ order.customer.phone_number }}</p>
+    <p>Address: {{ order.customer.address }}</p>
+
+    <h2>Delivery Details:</h2>
+    {% if delivery_partner %}
+        <p>Delivery Partner: {{ delivery_partner.user.get_full_name }}<br>
+           Phone Number: {{ delivery_partner.user.profile.phone_number }}</p>
+    {% else %}
+        <p>No delivery partner assigned yet.</p>
+    {% endif %}
+    
+    <h2>Order Status:</h2>
+    <div class="order-status">
+        {% for status in statuses %}
+            <div class="status-container">
+                <div class="status-circle 
+                    {% if order.status == status %}active{% endif %}
+                    {% if status in past_statuses %}past{% endif %}
+                "></div>
+                <div class="status-text">{{ status }}</div>
+                {% if not forloop.last %}
+                    <div class="status-line"></div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Show 'Proceed to Payment' only when the order status is 'Out for Delivery' -->
+    {% if order.status == 'Out for Delivery' %}
+    <form action="{% url 'proceed_to_payment' order.id %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Proceed to Payment</button>
+    </form>
+    {% endif %}
+
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>

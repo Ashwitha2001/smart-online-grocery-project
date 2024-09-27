@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:31f38f6240cdac9d864535dc8742ddacc4146108847c115d3f69e5f6a0b2f440
-size 1104
+<!-- templates/grocery/_search_filter.html -->
+<form method="GET" action="{% url 'home' %}">
+    <div>
+        <label for="search">Search Products:</label>
+        <input type="text" id="search" name="q" value="{{ query|default:'' }}" placeholder="Search by name or description">
+    </div>
+
+    <div>
+        <label for="category">Filter by Category:</label>
+        <select id="category" name="category">
+            <option value="">All Categories</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}" {% if category.id == category_id %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label for="price_min">Min Price:</label>
+        <input type="number" id="price_min" name="price_min" value="{{ price_min|default:'' }}" min="0">
+
+        <label for="price_max">Max Price:</label>
+        <input type="number" id="price_max" name="price_max" value="{{ price_max|default:'' }}" min="0">
+    </div>
+
+    <button type="submit">Filter</button>
+</form>

@@ -1,3 +1,18 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:25f6e9f9ddf151be9cdfb50d33cdc47510338b6bf7d38a0377a59a73e88a827b
-size 571
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Grocery</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form method="post" action="{% url 'login_view' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+    <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+</body>
+</html>

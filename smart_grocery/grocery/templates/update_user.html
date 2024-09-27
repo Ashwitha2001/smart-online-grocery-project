@@ -1,3 +1,22 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:03b5646a1d3485c37839b6c0efdf6d37f6fc4fc9a3087bf51159c8873079e4e2
-size 684
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update User</title>
+</head>
+<body>
+    <h1>Update User: {{ user.username }}</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" value="{{ user.username }}" required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required><br>
+
+        <button type="submit">Update User</button>
+    </form>
+
+    <a href="{% url 'user_list' %}">Back to User List</a>
+    <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+</body>
+</html>

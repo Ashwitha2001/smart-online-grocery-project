@@ -1,3 +1,160 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b2adde8dfd8a8a6dad32c82caf43ec559a4eadf718aad262cba6a5db77f9c078
-size 5376
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List - Smart Grocery</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+        }
+
+        .product-item img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .product-item h3 {
+            margin: 10px 0;
+        }
+
+        .product-item p {
+            margin: 5px 0;
+        }
+
+        .quantity-input {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+
+        .fixed-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background: #333;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        }
+
+        .fixed-buttons a {
+            color: #fff;
+            background: #28a745;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .fixed-buttons a:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Smart Grocery</h1>
+    </header>
+
+    <section>
+        <h2>Products</h2>
+
+        <!-- Include search and filter form -->
+        {% include '_search_filter.html' %}
+
+        <div class="product-list">
+            {% if products %}
+                {% for product in products %}
+                <div class="product">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="{% static 'images/no-image-available.png' %}" alt="No image available">
+                    {% endif %}
+
+                    <h3>{{ product.name }}</h3>
+                    {% if product.average_rating %}
+                        <p>Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
+                    {% else %}
+                        <p>No ratings yet</p>
+                    {% endif %}
+                    <a href="{% url 'product_detail' product.id %}">View Details</a>
+                    <p>{{ product.description }}</p>
+                    <p>Price: ₹{{ product.price }}</p>
+                    <button class="add-to-cart-btn" data-product-id="{{ product.id }}">Add to Cart</button>
+
+                    <!-- Quantity input and Add to Cart form -->
+                    <form class="add-to-cart-form" data-product-id="{{ product.id }}" method="POST" action="{% url 'add_to_cart' product.id %}">
+                        {% csrf_token %}
+                        <label for="quantity-{{ product.id }}">Quantity:</label>
+                        <input type="number" id="quantity-{{ product.id }}" name="quantity" value="1" min="1" max="{{ product.stock }}">
+                        <button type="submit">Add to Cart</button>
+                    </form>
+
+                    {% if product.stock > 0 %}
+                        <p>Stock: {{ product.stock }} units available</p>
+                    {% else %}
+                        <p style="color: red;">Out of Stock</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No products available at the moment.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="fixed-buttons">
+        <a href="{% url 'view_cart' %}" class="view-cart-btn">View Cart</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // When "Add to Cart" is clicked
+        $('.add-to-cart-btn').on('click', function(e) {
+            e.preventDefault(); // Prevent page reload
+
+            var productId = $(this).data('product-id');
+            var quantity = 1; // Default quantity, you can change this if needed
+
+            $.ajax({
+                type: 'POST',
+                url: '/grocery/add-to-cart/' + productId + '/',
+                data: {
+                    quantity: quantity,
+                    csrfmiddlewaretoken: '{{ csrf_token }}' // Include CSRF token for security
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Product added to cart!');
+                        // You can update the cart count or other UI elements here if needed
+                    } else {
+                        alert('Failed to add to cart.');
+                    }
+                },
+                error: function() {
+                    alert('Error adding product to cart.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

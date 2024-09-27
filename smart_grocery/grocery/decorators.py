@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7accfa0ce233858ed0010feaaa974893d4b06b29f539556fb1f11e3ffe83ca33
-size 453
+from django.http import HttpResponseForbidden
+
+def role_required(*roles):
+    def decorator(view_func):
+        def _wrapped_view(request, *args, **kwargs):
+            if request.user.is_authenticated and request.user.profile.role in roles:
+                return view_func(request, *args, **kwargs)
+            return HttpResponseForbidden("You do not have permission to access this page.")
+        return _wrapped_view
+    return decorator

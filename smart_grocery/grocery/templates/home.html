@@ -1,3 +1,254 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:842b057eab8363a12df7ac849a4901cc9d45526c2a93ecc4c90e1844bfc36d49
-size 8504
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Smart Grocery</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* Additional styling for product layout */
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+        }
+
+        .product-item img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .product-item h3 {
+            margin: 10px 0;
+        }
+
+        .product-item p {
+            margin: 5px 0;
+        }
+
+        .product-item form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .quantity-input {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+
+        /* Styling for categories */
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .category-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 250px;
+        }
+
+        .category-item h3 {
+            margin: 10px 0;
+        }
+
+        .subcategory-list {
+            margin-top: 10px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .subcategory-list li {
+            margin: 5px 0;
+        }
+
+        /* Notification styles */
+        .notification {
+            display: none;
+            padding: 10px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+
+        /* Button styles */
+        .view-cart-btn,
+        .categories-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            position: fixed;
+            z-index: 1000;
+        }
+
+        .view-cart-btn {
+            background-color: #4CAF50;
+            right: 10px;
+            bottom: 10px;
+        }
+
+        .categories-btn {
+            background-color: #4CAF50;
+            left: 10px;
+            bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Smart Grocery</h1>
+        {% if user.is_authenticated %}
+            <p>Welcome, {{ user.username }}!</p>
+            {% if customer.address %}
+                <p>Your Address: {{ request.user.customer.address }}</p>
+            {% else %}
+                <p>No address found. Please update your profile.</p>
+            {% endif %}
+        {% endif %}
+    </header>
+    
+
+    <nav>
+        <ul>
+            <!-- Show appropriate dashboard links based on user's role -->
+            {% if user.is_authenticated %}
+                <li>Welcome, {{ user.first_name|default:user.username }}!</li>
+
+                {% if user.profile.role == 'admin' %}
+                    <li><a href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
+                    <li><a href="{% url 'vendor_dashboard' %}">Vendor Dashboard</a></li>
+                    <li><a href="{% url 'delivery_personnel_dashboard' %}">Delivery Personnel Dashboard</a></li>
+                    <li><a href="{% url 'customer_dashboard' %}">Customer Dashboard</a></li>
+
+                {% elif user.profile.role == 'vendor' %}
+                    <li><a href="{% url 'vendor_dashboard' %}">Vendor Dashboard</a></li>
+
+                {% elif user.profile.role == 'delivery_personnel' %}
+                    <li><a href="{% url 'delivery_personnel_dashboard' %}">Delivery Personnel Dashboard</a></li>
+
+                {% elif user.profile.role == 'customer' %}
+                    <li><a href="{% url 'customer_dashboard' %}">Customer Dashboard</a></li>
+                {% endif %}
+                
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'register' %}">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <section>
+        <h2>Products</h2>
+
+        <!-- Include search and filter form -->
+        {% include '_search_filter.html' %}
+
+        <div class="product-list">
+            {% if products %}
+                {% for product in products %}
+                <div class="product-item">
+                    <!-- Display product image -->
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="{% static 'images/no-image-available.png' %}" alt="No image available">
+                    {% endif %}
+
+                    <!-- Display product details -->
+                    <h3>{{ product.name }}</h3>
+                    {% if product.average_rating %}
+                        <p>Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
+                    {% else %}
+                        <p>No ratings yet</p>
+                    {% endif %}
+                    <a href="{% url 'product_detail' product.id %}">View Details</a>
+                    <p>{{ product.description }}</p>
+                    <p>Price: ₹{{ product.price }}</p>
+
+                    <!-- Quantity input and Add to Cart form -->
+                    <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                        {% csrf_token %}
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" name="quantity" value="0" min="0" class="quantity-input">
+                        <button type="submit">Add to Cart</button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No products available at the moment.</p>
+            {% endif %}
+        </div>
+
+        <!-- View Cart button if items are in the cart -->
+        <a href="{% url 'view_cart' %}" class="view-cart-btn">View Cart (<span id="cart-count">{{ total_cart_quantity }}</span>)</a>
+
+    </section>
+
+    <!-- Categories Section with link to all categories page -->
+    <section>
+        <h2><a href="{% url 'categories' %}" class="categories-btn">Categories</a></h2>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Smart Grocery</p>
+    </footer>
+
+    <!-- Notification element -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('.add-to-cart-form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const notification = document.getElementById('notification');
+                        notification.textContent = data.message;
+                        notification.style.display = 'block';
+
+                        setTimeout(() => {
+                            notification.style.display = 'none';
+                        }, 3000);
+
+
+                        // Update cart count
+                        document.getElementById('cart-count').textContent = data.total_quantity;
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        });
+    </script>
+</body>
+</html>

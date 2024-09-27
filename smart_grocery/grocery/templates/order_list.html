@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:e618b0e039140028073470ab185a084b8f496d6650d1683190a5f5f660a23abe
-size 217
+{% for order in orders %}
+    <div>
+        <h2>Order #{{ order.id }}</h2>
+        <p>Status: {{ order.status }}</p>
+        <a href="{% url 'order_detail' order.id %}">View Details</a>
+    </div>
+{% endfor %}

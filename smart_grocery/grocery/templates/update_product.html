@@ -1,3 +1,15 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:df9e54b8b8986718c82da447cbf362c04b2b67834a2045093f64015f378203d4
-size 341
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Product</title>
+</head>
+<body>
+    <h1>Update Product</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Changes</button>
+    </form>
+    <a href="{% url 'vendor_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>

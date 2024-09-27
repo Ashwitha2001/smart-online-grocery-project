@@ -1,3 +1,68 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6eca5a39bb3f6af62739945d4f725ce27419ef5d4b3cbe92ae6124ff50e59767
-size 1932
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Dashboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Customer Dashboard</h1>
+    
+    {% if user.is_authenticated %}
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+
+    <h2>Your Orders</h2>
+    <p>Number of Orders: {{ order_count }}</p>
+
+    <!-- Display the list of orders in a table -->
+    {% if orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Total Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.items.first.product.name }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>${{ order.total_amount }}</td>
+                        <td>
+                            <a href="{% url 'order_detail' order.id %}">View Order Details</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No orders found.</p>
+    {% endif %}
+    
+    <a href="{% url 'order_history' %}">View Complete Order History</a>
+
+    {% else %}
+    <p>You need to <a href="{% url 'login' %}">log in</a> to access this page.</p>
+    {% endif %}
+</body>
+</html>

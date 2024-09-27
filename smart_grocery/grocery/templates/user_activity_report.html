@@ -1,3 +1,29 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:59b6c284b4eeb31a72073e9ee56ab2b4a4e63e31c6d4a09d3a6c2eba16c8af1a
-size 740
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Activity Report</title>
+</head>
+<body>
+    <h1>User Activity Report</h1>
+    <table>
+        <tr>
+            <th>User</th>
+            <th>Activity</th>
+            <th>Date</th>
+        </tr>
+        {% for activity in activity_data %}
+        <tr>
+            <td>{{ activity.user.username }}</td>
+            <td>{{ activity.action }}</td>
+            <td>{{ activity.timestamp }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No activity found.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

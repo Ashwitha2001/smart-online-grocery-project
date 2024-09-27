@@ -1,3 +1,35 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0f27a48d5abad4d90899cf5512b47a3dabc9674a3ae8fdee7a49a9553a3b7d91
-size 836
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order History</title>
+</head>
+<body>
+    <h1>Your Order History</h1>
+
+    <table border="1">
+        <tr>
+            <th>Order ID</th>
+            <th>Order Date</th>
+            <th>Status</th>
+            <th>Total Amount</th>
+            <th>View Details</th>
+        </tr>
+
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.ordered_at }}</td>
+            <td>{{ order.status }}</td>
+            <td>{{ order.total_amount }}</td>
+            <td>
+                <a href="{% url 'order_detail' order.id %}">View Details</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% if not orders %}
+        <p>You have not placed any orders yet.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,3 +1,50 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:119240da77873704f87f2bb8f321037d5ebe21d370c18d09244bd372282e49f2
-size 1323
+<!-- categories.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Categories - Smart Grocery</title>
+    <style>
+        .category-list, .subcategory-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .category-item, .subcategory-item {
+            margin-bottom: 10px;
+        }
+
+        .subcategory-list {
+            padding-left: 20px;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>All Categories</h1>
+
+    <ul class="category-list">
+        {% for category in categories %}
+            <li class="category-item">
+                <h2>{{ category.name }}</h2>
+                <ul class="subcategory-list">
+                    {% for subcategory in category.subcategories.all %}
+                        <li class="subcategory-item">
+                            <a href="{% url 'subcategory_products' subcategory.id %}">{{ subcategory.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <footer>
+        <p>&copy; 2024 Smart Grocery</p>
+    </footer>
+</body>
+</html>

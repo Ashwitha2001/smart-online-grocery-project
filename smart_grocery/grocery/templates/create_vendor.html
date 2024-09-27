@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:96c72baf39f6d8e03e8ca3f6a211cfe71a616f48ae1412d29b9049b768dc49a7
-size 478
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create New Vendor</title>
+</head>
+<body>
+    <h1>Create New Vendor</h1>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Vendor</button>
+    </form>
+    <a href="{% url 'vendor_list' %}">Back to Vendor List</a>
+</body>
+</html>

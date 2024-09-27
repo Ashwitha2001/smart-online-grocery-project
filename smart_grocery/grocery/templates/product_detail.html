@@ -1,3 +1,26 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2b4e94e42dc2963fd15955f1f39a741800381172140901206d5904b1f358da6c
-size 908
+<h1>{{ product.name }}</h1>
+<img src="{{ product.image.url }}" alt="{{ product.name }}">
+<p>Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
+
+{% if product.stock > 0 %}
+    <form method="POST" action="{% url 'add_to_cart' product.id %}">
+        {% csrf_token %}
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="quantity" min="1" max="{{ product.stock }}" value="1">
+        <button type="submit">Add to Cart</button>
+    </form>
+    <p>Stock: {{ product.stock }} units available</p>
+{% else %}
+    <p style="color: red;">Out of Stock</p>
+{% endif %}
+
+<h2>Reviews</h2>
+{% for review in reviews %}
+    <div class="review">
+        <strong>{{ review.customer.user.username }}:</strong>
+        <p>Rating: {{ review.rating }} / 5</p>
+        <p>{{ review.comment }}</p>
+    </div>
+{% empty %}
+    <p>No reviews yet.</p>
+{% endfor %}

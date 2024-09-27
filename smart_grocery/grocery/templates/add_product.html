@@ -1,3 +1,18 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b7621ab81d6eeda5a3d279dd12228076cab6854017b2dc3ab2eaec8a6607a32c
-size 425
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Product</title>
+</head>
+<body>
+    <h1>Add a New Product</h1>
+
+    <!-- Display form for adding a product -->
+    <form method="post" action="{% url 'add_product' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Product</button>
+    </form>
+
+    <a href="{% url 'vendor_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>

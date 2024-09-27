@@ -1,3 +1,14 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d1611a51f63af98f35d6b5d5658e66bf25c92ed0608bc44cd623b875f81e1104
-size 343
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Product</title>
+</head>
+<body>
+    <h1>Are you sure you want to delete "{{ product.name }}"?</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Yes, delete</button>
+    </form>
+    <a href="{% url 'vendor_dashboard' %}">Cancel</a>
+</body>
+</html>

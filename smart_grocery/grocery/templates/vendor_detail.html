@@ -1,3 +1,22 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:4761e213eb9f824fb966677dba430076a1bedd7e2f15afdd5b8e399080aaf736
-size 631
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vendor Details</title>
+</head>
+<body>
+    <h1>Vendor Details</h1>
+    
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+
+    <h2>{{ vendor.business_name }}</h2>
+    <p><strong>Email:</strong> {{ vendor.email }}</p>
+    <p><strong>Phone:</strong> {{ vendor.phone }}</p>
+    <p><strong>Address:</strong> {{ vendor.business_address }}</p>
+    <p><strong>Username:</strong> {{ vendor.profile.user.username }}</p>
+
+    <a href="{% url 'vendor_list' %}">Back to Vendor List</a>
+</body>
+</html>

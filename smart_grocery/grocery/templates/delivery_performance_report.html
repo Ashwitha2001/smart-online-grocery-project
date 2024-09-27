@@ -1,3 +1,43 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:143908b085e7aa84bc028761c4944a45b710599a65802d6e997e6b13f8d669fb
-size 1439
+<table>
+    <thead>
+        <tr>
+            <th>Delivery ID</th>
+            <th>Delivery Partner</th>
+            <th>Status</th>
+            <th>Scheduled At</th>
+            <th>Delivered At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for delivery in deliveries %}
+            <tr>
+                <td>{{ delivery.id }}</td>
+                <td>
+                    {% if delivery.delivery_partner %}
+                        {{ delivery.delivery_partner.user.username }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if delivery.status == "Delivered" %}
+                        <span style="color: green;">{{ delivery.status }}</span>
+                    {% else %}
+                        <span style="color: red;">{{ delivery.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ delivery.scheduled_at|date:"F d, Y, g:i a" }}</td>
+                <td>
+                    {% if delivery.delivered_at %}
+                        {{ delivery.delivered_at|date:"F d, Y, g:i a" }}
+                    {% else %}
+                        Not Delivered
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+

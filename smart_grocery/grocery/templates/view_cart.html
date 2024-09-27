@@ -1,3 +1,108 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6587f47985400ae135c3f6b07901549b227f807d6fb5bf1a9525105be505f5cc
-size 3471
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Cart - Smart Grocery</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .cart-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .cart-item h3 {
+            margin: 10px 0;
+        }
+
+        .cart-item p {
+            margin: 5px 0;
+        }
+
+        .remove-btn {
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .total-summary {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        
+        .checkout-btn {
+            background-color: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Your Cart</h1>
+        <a href="{% url 'home' %}">Back to Home</a>
+    </header>
+
+    <section>
+        {% if cart_items %}
+            <div class="cart-items-list">
+                {% for item in cart_items %}
+                    <div class="cart-item">
+                        <!-- Display product image -->
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <img src="{% static 'images/no-image-available.png' %}" alt="No image available">
+                        {% endif %}
+
+                        <!-- Display product details -->
+                        <div class="item-details">
+                            <h3>{{ item.product.name }}</h3>
+                            <p>Quantity: {{ item.quantity }}</p>
+                            <p>Price per unit: ₹{{ item.product.price }}</p>
+                            <p>Total: ₹{{ item.total_price|floatformat:2 }}</p>
+                        </div>
+
+                        <!-- Remove button -->
+                        <form method="post" action="{% url 'remove_from_cart' item.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="remove-btn">Remove</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="total-summary">
+                <p>Total Quantity: {{ total_quantity }}</p>
+                <p>Total Amount: ₹{{ total_amount }}</p>
+            </div>
+        {% else %}
+            <p>Your cart is empty.</p>
+        {% endif %}
+
+        <!-- Proceed to Checkout button -->
+        <form action="{% url 'checkout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="checkout-btn">Proceed to Checkout</button>
+        </form>
+    </section>  
+</body>
+</html>

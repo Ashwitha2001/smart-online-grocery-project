@@ -1,3 +1,52 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3e6435ea1f9af8d3369710e5b945735d9e492b81a81ddfa3cea74aceeae997cc
-size 1589
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Management</title>
+</head>
+<body>
+    <h1>Delivery Management</h1>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+
+    <h2>Orders Requiring Delivery Assignment</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Address</th>
+                <th>Order Date</th>
+                <th>Product Details</th>
+                <th>Assign Delivery Partner</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.customer.user.get_full_name }}</td>
+                <td>{{ order.customer.address }}</td>
+                <td>{{ order.ordered_at }}</td>
+                <td>
+                    <ul>
+                        {% for item in order.items.all %}
+                            <li>{{ item.product.name }} - Quantity: {{ item.quantity }} - Price: ₹{{ item.price }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <a href="{% url 'assign_delivery_partner' order.id %}">Assign Delivery Partner</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not orders %}
+        <p>No orders requiring delivery assignment.</p>
+    {% endif %}
+
+</body>
+</html>

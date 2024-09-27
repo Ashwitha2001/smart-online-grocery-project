@@ -1,3 +1,58 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:15877367bcb442d03cd087821affe80e3e226baf26282ef881ae64b29c941d2c
-size 1932
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h1>Welcome to the Admin Dashboard</h1>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'vendor_dashboard' %}">Vendor Dashboard</a></li>
+        <li><a href="{% url 'customer_dashboard' %}">Customer Dashboard</a></li>
+        <li><a href="{% url 'delivery_personnel_dashboard' %}">Delivery Personnel Dashboard</a></li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+    </ul>
+
+    <h3>Total Users: {{ total_users }}</h3>
+    <h3>Total Orders: {{ total_orders }}</h3>
+    <h3>Total Deliveries: {{ delivery_count }}</h3>
+    <h3>Total Products: {{ product_count }}</h3>
+
+    <h2>All Products</h2>
+    <ul>
+        {% if products %}
+            {% for product in products %}
+                <li>{{ product.name }} - {{ product.stock }} in stock</li>
+            {% endfor %}
+        {% else %}
+            <li>No products available.</li>
+        {% endif %}
+    </ul>
+
+    <h2>Manage Users</h2>
+    <ul>
+        <li><a href="{% url 'user_list' %}">View All Users</a></li>
+        <li><a href="{% url 'add_user' %}">Add New User</a></li>
+    </ul>
+
+    <h2>Manage Products</h2>
+    <ul>
+        <li><a href="{% url 'add_product' %}">Add New Product</a></li>
+        <li><a href="{% url 'product_list' %}">View All Products</a></li>
+    </ul>
+
+    <h2>Manage Orders</h2>
+    <ul>
+        <li><a href="{% url 'order_list' %}">View All Orders</a></li>
+    </ul>
+
+    <h2>Reports</h2>
+    <ul>
+        <li><a href="{% url 'sales_report' %}">Sales Report</a></li>
+        <li><a href="{% url 'user_activity_report' %}">User Activity Report</a></li>
+        <li><a href="{% url 'delivery_performance_report' %}">Delivery Performance Report</a></li>
+    </ul>
+
+    <a href="{% url 'delivery_management' %}">Manage Deliveries</a><br>
+</body>
+</html>

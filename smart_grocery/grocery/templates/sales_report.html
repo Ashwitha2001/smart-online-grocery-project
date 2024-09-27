@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:825e3ec8b908a23e3484c82357387db105e25ed190e672b82be515f9f112f118
-size 462
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Report</title>
+</head>
+<body>
+    <h1>Sales Report</h1>
+    <h2>Total Sales: ${{ total_sales }}</h2>
+
+    <h3>Orders</h3>
+    <ul>
+        {% for order in orders %}
+            <li>Order ID: {{ order.id }} - Total Amount: ${{ order.total_amount }} - Date: {{ order.date }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+</body>
+</html>

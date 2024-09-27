@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b2ceff35c1cf24b149a4ae0f0955b2bc9e33164e9a0291777cb9c9b2efcca3bf
-size 438
+<!-- category_detail.html -->
+<h2>{{ category.name }}</h2>
+<div class="product-list">
+    {% for product in products %}
+        <div class="product-item">
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+            <p>Price: ₹{{ product.price }}</p>
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" width="200" height="200">
+        </div>
+    {% endfor %}
+</div>

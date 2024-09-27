@@ -1,3 +1,80 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a74b95b66cac100a6241db6e33966bd6f1b0a464a2a6fced70f4154f5debe3e9
-size 2980
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Smart Grocery</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Payment</h1>
+    </header>
+
+    <section>
+        <h2>Amount to Pay: ₹{{ total_amount }}</h2>  <!-- Display the total amount in rupees -->
+        <button id="pay-button">Pay with Razorpay</button>
+         
+        {% if error_message %}
+            <div class="alert alert-danger">
+                {{ error_message }}  <!-- Display error messages if there are any issues -->
+            </div>
+        {% endif %}
+    </section>
+
+
+    <!-- Razorpay script URL -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+    document.getElementById('pay-button').onclick = function() {
+        var options = {
+            "key": "{{ key_id }}",  // Razorpay Key ID
+            "amount": "{{ amount }}",  // Amount in paise
+            "currency": "{{ currency }}",
+            "name": "Smart Grocery",
+            "description": "Order Payment",
+            "order_id": "{{ order_id }}",  // Razorpay Order ID
+            "handler": function (response) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{% url 'payment_success' %}";  // URL for payment success
+                var input1 = document.createElement('input');
+                input1.type = 'hidden';
+                input1.name = 'razorpay_order_id';
+                input1.value = response.razorpay_order_id;
+                var input2 = document.createElement('input');
+                input2.type = 'hidden';
+                input2.name = 'razorpay_payment_id';
+                input2.value = response.razorpay_payment_id;
+                var input3 = document.createElement('input');
+                input3.type = 'hidden';
+                input3.name = 'razorpay_signature';
+                input3.value = response.razorpay_signature;
+
+                // Add CSRF token
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = "{{ csrf_token }}";  // CSRF token from the context
+                form.appendChild(csrfInput);
+
+                form.appendChild(input1);
+                form.appendChild(input2);
+                form.appendChild(input3);
+
+                document.body.appendChild(form);
+                form.submit();  // Submit the form to the backend
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    };
+    </script>
+
+</body>
+</html>

@@ -1,3 +1,25 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:26fc6ca34bd7d25b848639ef3a262c9d7293ebe47ae831f3769d28f0d092c479
-size 736
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add User</title>
+</head>
+<body>
+    <h1>Add New User</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+
+        <button type="submit">Add User</button>
+    </form>
+
+    <a href="{% url 'user_list' %}">Back to User List</a><br>
+    <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+</body>
+</html>

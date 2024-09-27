@@ -1,3 +1,16 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:38f7bdf739717ac1da8a3b48500680342bf9fcd4d2c6b755b5469c5d624663cc
-size 204
+/* static/css/styles.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+}
+
+a {
+    color: #0066cc;
+}

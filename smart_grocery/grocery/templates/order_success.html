@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c15edfc1c2f0440411102b68255e7ae73e0757795705d2f7d16fe065523a3c40
-size 675
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success</title>
+    <script type="text/javascript">
+        // JavaScript to redirect after 3 seconds
+        setTimeout(function() {
+            window.location.href = "{% url 'order_detail' order_id=order.id %}";
+        }, 3000);  // 3000 milliseconds = 3 seconds
+    </script>
+</head>
+<body>
+    <h1>Order Placed Successfully!</h1>
+    <p>Your order has been placed and will be processed shortly.</p>
+    <p>You will be redirected to the order details page in 3 seconds...</p>
+</body>
+</html>

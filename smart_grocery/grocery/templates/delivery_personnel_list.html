@@ -1,3 +1,32 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:33aa9bc49be2af66a6092ee758825bcfd051460d119c75395881d45c0295751d
-size 945
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Personnel List</title>
+</head>
+<body>
+    <h1>Delivery Personnel List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for delivery in deliveries %}
+                <tr>
+                    <td>{{ delivery.id }}</td>
+                    <td>{{ delivery.user.username }}</td>
+                    <td>{{ delivery.user.get_full_name }}</td>
+                    <td>{{ delivery.user.email }}</td>
+                    <td><a href="{% url 'delivery_personnel_detail' delivery.id %}">View Details</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>

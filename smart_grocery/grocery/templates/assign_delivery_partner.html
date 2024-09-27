@@ -1,3 +1,33 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7848b2217dca1e1d2514cd87fac38346f2bc96fdb56f8ae2bbb0804397f6914a
-size 1054
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assign Delivery Partner</title>
+</head>
+<body>
+    <h1>Assign Delivery Partner for Order #{{ order.id }}</h1>
+
+    <p>Customer: {{ order.customer.user.username }}</p>
+    <p>Address: {{ order.customer.address }}</p>
+    <p>Total Amount: ₹{{ order.total_amount }}</p>
+
+    <h3>Product Details</h3>
+    <ul>
+        {% for item in order.items.all %}
+            <li>{{ item.product.name }} - Quantity: {{ item.quantity }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Available Delivery Partners</h3>
+    <form method="post">
+        {% csrf_token %}
+        <select name="delivery_partner">
+            {% for partner in delivery_partners %}
+                <option value="{{ partner.id }}">{{ partner.user.get_full_name }} - Current Deliveries: {{ partner.delivery_count }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Assign</button>
+    </form>
+
+    <a href="{% url 'delivery_management' %}">Back to Delivery Management</a>
+</body>
+</html>

@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:e89e53e02f8a8835525825884d5ef6b48426347dc1f2695b616fa5c7c2e7baf0
-size 534
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success</title>
+</head>
+<body>
+    <h1>Payment Successful!</h1>
+    <p>Thank you for your payment. Enjoy your purchase!</p>
+    
+    <!-- Add a link to leave a review -->
+    <p>
+        <a href="{% url 'leave_review' product_ids|join:',' %}">Leave a Review for Your Products</a>
+    </p>
+
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>

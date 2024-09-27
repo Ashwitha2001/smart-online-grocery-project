@@ -1,3 +1,127 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b0949520bb613566723b0909754add5508605c305685e6edb9edc660b221fe07
-size 4239
+<!-- subcategory_products.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subcategory.name }} - Smart Grocery</title>
+    <style>
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+        }
+
+        .product-item img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        /* Notification styles */
+        .notification {
+            display: none;
+            padding: 10px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+
+        /* Button styles */
+        .view-cart-btn{
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            position: fixed;
+            z-index: 1000;
+        }
+
+        .view-cart-btn {
+            background-color: #4CAF50;
+            right: 10px;
+            bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ subcategory.name }}</h1>
+
+    <div class="product-list">
+        {% if products %}
+            {% for product in products %}
+            <div class="product-item">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <h3>{{ product.name }}</h3>
+                <p>Price: ₹{{ product.price }}</p>
+                <p>{{ product.description }}</p>
+                <!-- Add to Cart button -->
+                <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                    {% csrf_token %}
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" name="quantity" value="0" min="0" class="quantity-input">
+                    <button type="submit">Add to Cart</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No products available in this subcategory.</p>
+        {% endif %}
+    </div>
+    
+    <!-- View Cart button if items are in the cart -->
+    <a href="{% url 'view_cart' %}" class="view-cart-btn">View Cart (<span id="cart-count">{{ total_cart_quantity }}</span>)</a>
+
+    <!-- Notification element -->
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addToCartForms = document.querySelectorAll('.add-to-cart-form');
+            addToCartForms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+    
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken') // Only if CSRF is enabled
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const notification = document.getElementById('notification');
+                        notification.textContent = data.message;
+                        notification.style.display = 'block';
+    
+                        // Update cart count
+                        document.getElementById('cart-count').textContent = data.total_quantity;
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        });
+    </script>
+    
+    <footer>
+        <p>&copy; 2024 Smart Grocery</p>
+    </footer>
+</body>
+</html>

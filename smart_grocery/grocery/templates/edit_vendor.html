@@ -1,3 +1,15 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:fa213d6e0e0ed990073cbd775170a0ac58e6d1875edb47cca10f181408f43ee4
-size 332
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Vendor</title>
+</head>
+<body>
+    <h1>Edit Vendor</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Changes</button>
+    </form>
+    <a href="{% url 'vendor_list' %}">Back to Vendor List</a>
+</body>
+</html>

@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d9e6a587826e56cd86a211dd87f76f6e911e9ca40448e319160f01efefc1e128
-size 812
+<form method="post">
+    {% csrf_token %}
+    <select name="status">
+        <option value="Placed" {% if order.status == 'Placed' %}selected{% endif %}>Placed</option>
+        <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+        <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+        <option value="Out for Delivery" {% if order.status == 'Out for Delivery' %}selected{% endif %}>Out for Delivery</option>
+        <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+        <option value="Canceled" {% if order.status == 'Canceled' %}selected{% endif %}>Canceled</option>
+    </select>
+    <button type="submit">Update Status</button>
+</form>

@@ -1,3 +1,22 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:59d4114a71e0986407ebb8daee84c3148f41b47ce4581f0cf740d081608cbb20
-size 708
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Delivery Status</title>
+</head>
+<body>
+    <h1>Update Status for Delivery {{ delivery.id }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="status">Status:</label>
+        <select name="status" id="status">
+            {% for choice in delivery.STATUS_CHOICES %}
+                <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Update</button>
+    </form>
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>

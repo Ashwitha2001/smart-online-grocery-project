@@ -1,3 +1,14 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0d6da3b6e86fa3c081a8cd2b3edfd0f803a6c19fd8d61120192884771343de5d
-size 339
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Payment</title>
+</head>
+<body>
+    <h1>Make a Payment</h1>
+    <p>Amount: {{ amount|floatformat:2 }}</p>
+    <form action="{% url 'create_payment' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Proceed to Payment</button>
+    </form>
+</body>
+</html>

@@ -1,3 +1,92 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3a021536227dc3545d0a436b756dc0fc73f89d10e24c226ddfaaab04fc1ab38f
-size 2510
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Smart Grocery</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .checkout-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .checkout-container h1 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .error-message {
+            color: red;
+            margin-bottom: 15px;
+        }
+
+        .total-summary {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .checkout-btn {
+            background-color: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'home' %}">Back to Home</a>
+    </header>
+
+    <section class="checkout-container">
+        <h1>Checkout</h1>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form action="{% url 'checkout' %}" method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <textarea id="address" name="address" rows="4">{{ customer.address|default_if_none:'' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="phone_number">Phone Number:</label>
+                <input type="text" id="phone_number" name="phone_number" value="{{ customer.phone_number|default_if_none:'' }}">
+            </div>
+
+            <div class="total-summary">
+                <p>Total Amount: ₹{{ total_amount }}</p>
+            </div>
+
+            <button type="submit" class="checkout-btn">Place Order</button>
+        </form>
+    </section>  
+</body>
+</html>
