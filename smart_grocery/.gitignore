@@ -1,0 +1,4 @@
+# Ignore virtual environment
+myworld/
+# Ignore requirements file (if needed)
+requirements.txt
