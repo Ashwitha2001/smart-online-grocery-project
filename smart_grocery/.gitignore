@@ -1,4 +1,26 @@
 # Ignore virtual environment
 myworld/
+
 # Ignore requirements file (if needed)
 requirements.txt
+
+# Remove .sqbpro files
+*.sqbpro
+
+# Remove the SQLite database file
+db.sqlite3
+
+# Remove log files
+*.log
+
+# Remove the media directory
+media/
+
+# Remove the staticfiles directory
+staticfiles/
+
+# Remove .exe files
+*.exe
+
+# Remove .vscode directory
+.vscode/
