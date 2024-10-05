@@ -7,29 +7,59 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #e7f9e6;
-            color: #333;
+            background-color: #f9f9f9;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
             text-align: center;
-            padding: 50px;
+            color: #333;
         }
-        h1 {
-            color: #2ecc71;
+
+        h2 {
+            color: #4CAF50;
         }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
         a {
-            color: #3498db;
+            display: inline-block;
             text-decoration: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+            font-size: 16px;
         }
+
         a:hover {
-            text-decoration: underline;
+            background-color: #45a049;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin: 20px 0;
+        }
+
+        a.leave-review {
+            display: block;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-    <h1>Payment Successful!</h1>
-    <p>Thank you for your payment. Enjoy your purchase!</p>
-    <p>
-        <a href="{% url 'leave_review' product_ids=product_ids %}">Leave a Review for Your Products</a>
-    </p>
+    <h2>Payment Successful!</h2>
+    <p>Thank you for your purchase. You can now leave reviews for the products you've ordered.</p>
+
+    <a href="{% url 'leave_review' order.id %}">Leave Reviews for Your Products</a><br>
     <a href="{% url 'home' %}">Back to Home</a>
 </body>
 </html>

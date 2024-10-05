@@ -1,20 +1,18 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Vendor, Product, Order,OrderItem,Delivery, Customer,  Category, Subcategory, Cart, Review
+from .models import Profile, Vendor, Product, Order,OrderItem,Delivery,DeliveryPersonnel, Customer,  Category, Subcategory, Cart, Review
 from django.contrib.auth.forms import UserCreationForm
-
+from django.core.exceptions import ValidationError
 
 class UserRegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'password1', 'password2']
 
-    # Override save method if needed to customize behavior
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])  # Set the password
         if commit:
-            user.save()  # Save the user instance
+            user.save()  
         return user
 
 class LoginForm(forms.Form):
@@ -52,6 +50,17 @@ class DeliveryForm(forms.ModelForm):
         model = Delivery
         fields = ['order', 'delivery_partner', 'address', 'status', 'scheduled_at', 'delivered_at']
 
+class DeliveryPersonnelForm(forms.ModelForm):
+    class Meta:
+        model = DeliveryPersonnel
+        fields = ['vehicle_type', 'vehicle_number', 'phone', 'address']  
+        widgets = {
+            'vehicle_type': forms.TextInput(attrs={'placeholder': 'Type of vehicle'}),
+            'vehicle_number': forms.TextInput(attrs={'placeholder': 'Vehicle number'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Phone number', 'maxlength': 10}),
+            'address': forms.Textarea(attrs={'placeholder': 'Address'}),
+        }
+
 class OrderStatusForm(forms.ModelForm):
     class Meta:
         model = Order
@@ -66,21 +75,29 @@ class CustomerForm(forms.ModelForm):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Email'}))  # User's email field
 
     class Meta:
-        model = Customer  # Customer-specific fields
+        model = Customer  
         fields = ['address', 'phone_number']  # Only Customer fields
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)  # Get the user instance if provided
+        self.user = kwargs.pop('user', None)  
         super().__init__(*args, **kwargs)
         
         if self.user:
-            self.fields['email'].initial = self.user.email  # Set initial email value
+            self.fields['email'].initial = self.user.email  
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Check if the email already exists for another user
+        if User.objects.filter(email=email).exclude(id=self.user.id).exists():
+            raise ValidationError("A user with this email already exists.")
+        return email
+
 
     def save(self, commit=True):
         # Save email field to the User model
         if self.user:
             self.user.email = self.cleaned_data['email']
-            self.user.save()  # Save the user's email
+            self.user.save()
 
         # Update the Customer instance and save
         customer = super().save(commit=commit)

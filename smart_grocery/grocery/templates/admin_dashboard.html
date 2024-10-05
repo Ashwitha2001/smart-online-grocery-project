@@ -23,9 +23,9 @@
             padding: 15px;
             text-align: center;
             margin-top: 10px;
-            display: flex; /* Use flexbox to align items */
-            justify-content: center; /* Center items horizontally */
-            flex-wrap: wrap; /* Allow items to wrap to the next line if needed */
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         nav a {
             color: #ffffff;
@@ -53,20 +53,22 @@
             color: #35424a;
             margin-top: 20px;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        li {
+        table th, table td {
             padding: 10px;
+            text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        li a {
-            color: #35424a;
-            text-decoration: none;
+        table th {
+            background-color: #35424a;
+            color: white;
         }
-        li a:hover {
-            text-decoration: underline;
+        table tr:hover {
+            background-color: #f5f5f5;
         }
         footer {
             text-align: center;
@@ -90,28 +92,45 @@
         <a href="{% url 'vendor_dashboard' %}">Vendor Dashboard</a>
         <a href="{% url 'customer_dashboard' %}">Customer Dashboard</a>
         <a href="{% url 'delivery_personnel_dashboard' %}">Delivery Personnel Dashboard</a>
-        <a href="{% url 'delivery_management' %}">Manage Deliveries</a><br>
-        <a href="{% url 'logout' %}">Logout</a>
+        <a href="{% url 'delivery_management' %}">Manage Deliveries</a>
+        <a href="{% url 'logout_view' %}">Logout</a>
     </nav>
 
     <div class="container">
+        <h2>Dashboard Overview</h2>
         <h3>Total Users: {{ total_users }}</h3>
         <h3>Total Orders: {{ total_orders }}</h3>
-        <h3>Total Deliveries: {{ delivery_count }}</h3>
+        <h3>Total Deliveries Remaining: {{ delivery_count }}</h3>
         <h3>Total Products: {{ product_count }}</h3>
 
         <h2>All Products</h2>
-        <ul>
-            {% if products %}
-                {% for product in products %}
-                    <li>{{ product.name }} - {{ product.stock }} in stock</li>
-                {% endfor %}
-            {% else %}
-                <li>No products available.</li>
-            {% endif %}
-        </ul>
-        
-        
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Stock</th>
+                    <th>Price</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if products %}
+                    {% for product in products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.stock }}</td>
+                            <td>{{ product.price }}</td>
+                            <td>{{ product.description }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4">No products available.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
         <h2>Manage Users</h2>
         <ul>
             <li><a href="{% url 'user_list' %}">View All Users</a></li>
@@ -138,7 +157,7 @@
     </div>
 
     <footer>
-        <p>&copy; {{ 2024 }} Smart Grocery</p>
+        <p>&copy; {{ now.year }} Smart Grocery</p>
     </footer>
 </body>
 </html>

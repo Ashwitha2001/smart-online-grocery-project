@@ -1,11 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product List - Smart Grocery</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -168,7 +167,6 @@
                     success: function(response) {
                         if (response.status === 'success') {
                             alert('Product added to cart!');
-                            // Update UI if needed
                         } else {
                             alert('Failed to add to cart.');
                         }

@@ -5,6 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Details</title>
     <style>
+         body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 50px auto; 
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #007bff;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: #555;
+            margin: 5px 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin-bottom: 10px;
+            background: #f0f8ff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
         .order-status {
             display: flex;
             flex-direction: column;
@@ -16,8 +61,8 @@
             display: flex;
             align-items: center;
             position: relative;
-            width: 100%; 
-            margin-bottom: 20px; 
+            width: 100%;
+            margin-bottom: 20px;
         }
 
         .status-circle {
@@ -47,11 +92,10 @@
             color: white;
         }
 
-        /* Connecting lines */
         .status-line {
             width: 2px;
             background-color: lightblue;
-            height: 50px; /* Adjust this for proper spacing */
+            height: 50px; 
             position: absolute;
             left: 14px;
             top: 30px;
@@ -61,13 +105,40 @@
         .status-container:not(:last-child) .status-line {
             display: block;
         }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>Order Details</h1>
 
     <p>Order ID: {{ order.id }}</p>
-    <p>Order Placed At: {{ order.ordered_at|date:"Y-m-d H:i:s" }}</p>
+    <p>Order Placed At: {{ order.ordered_at|date:"Y-m-d H:i:s A" }}</p>
     <p>Total Amount: ₹{{ order.total_amount }}</p>
 
     <h2>Product Details:</h2>
@@ -87,11 +158,16 @@
     <h2>Delivery Details:</h2>
     {% if delivery_partner %}
         <p>Delivery Partner: {{ delivery_partner.user.get_full_name }}<br>
-           Phone Number: {{ delivery_partner.user.profile.phone_number }}</p>
+            Phone Number: {{ delivery_partner.user.profile.phone_number }}</p>
+        {% if order.get_delivered_at %}
+            <p>Delivered At: {{ order.get_delivered_at|date:"Y-m-d H:i:s A" }}</p>
+        {% else %}
+            <p>Delivery is still in progress.</p>
+        {% endif %}
     {% else %}
         <p>No delivery partner assigned yet.</p>
     {% endif %}
-    
+
     <h2>Order Status:</h2>
     <div class="order-status">
         {% for status in statuses %}

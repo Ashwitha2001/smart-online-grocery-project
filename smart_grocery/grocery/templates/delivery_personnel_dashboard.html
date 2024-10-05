@@ -21,7 +21,7 @@
         }
         h1 {
             color: #333;
-            text-align: center; /* Centered title */
+            text-align: center; 
             margin-bottom: 20px;
         }
         .nav {
@@ -63,30 +63,32 @@
             color: #fff;
         }
         tr:hover {
-            background-color: #f1f1f1; /* Highlight on hover */
+            background-color: #f1f1f1; 
         }
         .footer {
             text-align: center;
             margin-top: 20px;
-            color: #333; /* Footer text color */
-            font-weight: bold; /* Bold footer text */
+            color: #333; 
+            font-weight: bold; 
         }
     </style>
 </head>
 <body>
     <h1>Welcome to the Delivery Personnel Dashboard</h1>
+    <h3>{{ welcome_message }}</h3>
     <ul>
         <li><a href="{% url 'home' %}">Home</a></li><br>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
+        <li><a href="{% url 'logout_view' %}">Logout</a></li>
     </ul>
     <h2>Orders to Deliver</h2>
     <p>Number of Orders: {{ order_count }}</p>
-    <p>Number of Deliveries: {{ delivery_count }}</p>
+    <p>Number of Orders Delivered: {{ delivery_count }}</p>
 
     <table>
         <thead>
             <tr>
                 <th>Order ID</th>
+                <th>Ordered At</th>
                 <th>Status</th>
                 <th>Total Amount</th>
                 <th>Customer Name</th>
@@ -96,6 +98,7 @@
                 <th>Vendor Contact</th>
                 <th>Vendor Address</th>
                 <th>Products</th>
+                <th>Delivered At</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -103,6 +106,7 @@
             {% for order in delivery_orders %}
                 <tr id="order-{{ order.id }}">
                     <td>{{ order.id }}</td>
+                    <td>{{ order.ordered_at|date:"d M Y H:i A" }}</td>
                     <td id="status-{{ order.id }}">{{ order.status }}</td>
                     <td>₹{{ order.total_amount }}</td>
                     <td>{{ order.customer.user.username }}</td>
@@ -118,6 +122,7 @@
                             {% endfor %}
                         </ul>
                     </td>
+                    <td>{{ order.get_delivered_at|date:"d M Y H:i A" }}</td>
                     <td>
                         <form method="post" action="{% url 'update_order_status' order.id %}">
                             {% csrf_token %}
@@ -142,7 +147,7 @@
     <a href="{% url 'home' %}">Back to Home</a>
 
     <div class="footer">
-        <p>&copy; 2024 Smart Grocery</p> <!-- Company name -->
+        <p>&copy; 2024 Smart Grocery</p> 
     </div>
 
     <script>

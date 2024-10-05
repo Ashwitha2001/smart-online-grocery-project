@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,102 +7,74 @@
     <title>Leave a Review</title>
     <style>
         body {
+            background-color: #f8f9fa;
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
             margin: 0;
             padding: 20px;
         }
-
-        h1 {
-            color: #333;
-        }
-
-        form {
-            background-color: #fff;
-            padding: 20px;
+        .container {
+            background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
         }
-
-        label {
-            display: block;
-            margin: 10px 0 5px;
-        }
-
-        select, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        a {
-            display: block;
-            margin-top: 20px;
-            color: #007bff;
-        }
-
-        .message {
+        h2 {
+            text-align: center;
             margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 5px;
+            color: #343a40;
         }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
+        .product-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
+        .product-card h3 {
+            margin: 0 0 10px;
+            color: #495057;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .btn-primary {
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <h1>Leave a Review for Your Purchase</h1>
 
-    {% if messages %}
-        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-            {% for message in messages %}
-                {{ message }}
-            {% endfor %}
-        </div>
-    {% endif %}
-    
-    <form method="POST">
+<div class="container">
+    <h2>Leave Reviews for Your Products</h2>
+    <form method="post">
         {% csrf_token %}
         {% for product in products %}
-            <h2>{{ product.name }}</h2>
-            <label for="rating_{{ product.id }}">Rating:</label>
-            <select name="rating_{{ product.id }}" id="rating_{{ product.id }}">
-                <option value="5">5</option>
-                <option value="4">4</option>
-                <option value="3" selected>3</option> <!-- Default to 3 -->
-                <option value="2">2</option>
-                <option value="1">1</option>
-            </select>
-
-            <label for="comment_{{ product.id }}">Review:</label>
-            <textarea name="comment_{{ product.id }}" id="comment_{{ product.id }}" rows="4"></textarea>
+            <div class="product-card">
+                <h3>{{ product.product.name }}</h3>
+                <div class="form-group">
+                    <label for="rating_{{ product.product.id }}">Rating:</label>
+                    <select class="form-control" name="rating_{{ product.product.id }}" id="rating_{{ product.product.id }}">
+                        <option value="">Select Rating</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="comment_{{ product.product.id }}">Comment:</label>
+                    <textarea class="form-control" name="comment_{{ product.product.id }}" id="comment_{{ product.product.id }}" placeholder="Leave your comment here" rows="3"></textarea>
+                </div>
+            </div>
         {% endfor %}
-        <button type="submit">Submit Reviews</button>
+        <button type="submit" class="btn btn-primary">Submit Reviews</button>
     </form>
+</div>
 
-    <a href="{% url 'home' %}">Back to Home</a>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>

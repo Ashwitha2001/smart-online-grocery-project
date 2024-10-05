@@ -1,40 +1,35 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate,logout
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
-from .models import Profile, Product,Category,Subcategory, Customer, Order, OrderItem, Cart, Delivery, Vendor, Invoice, Review
+from django.http import (HttpResponse, JsonResponse,  HttpResponseNotFound, HttpResponseBadRequest)
 from django.contrib.auth.models import User
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest
-from .forms import VendorForm, ProductForm,  OrderStatusForm, CartForm, OrderItemForm, UserRegistrationForm, CustomerForm, DeliveryForm,ReviewForm
 from django.contrib import messages
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.utils.decorators import method_decorator
-from django.views.generic import ListView
-import razorpay
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.forms import  UserCreationForm, PasswordResetForm
+from .forms import LoginForm
+from django.contrib.auth.views import (PasswordResetView, PasswordResetDoneView, 
+                                       PasswordResetConfirmView, PasswordResetCompleteView)
+from django.core.cache import cache
+from django.core.mail import send_mail, EmailMessage
+from django.urls import reverse
+from django.middleware.csrf import get_token
+from django.utils import timezone
+from django.db.models import Q, Avg, Sum, F
 from django.core.files.base import ContentFile
-from django.db.models import Q, Avg
+from django.conf import settings
+from decimal import Decimal
+import razorpay
+
+from .models import (Profile,Admin, Product, Category, Subcategory, Customer, Order,SalesReport,
+                     OrderItem, Cart, Delivery,DeliveryPersonnel, Vendor, Invoice, Review, UserActivity)
+from .forms import (UserRegistrationForm,VendorForm, ProductForm, CustomerForm,DeliveryPersonnelForm)
+from .utils import generate_invoice
+from django.db import models
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from .models import UserActivity
-from io import BytesIO
-from django.core.cache import cache
-from django.core.mail import send_mail
-from django.core.mail import EmailMessage
-from .utils import generate_invoice 
-from django.utils import timezone
-import json
-from django.db.models import Count
-from django.db.models import Sum, F,FloatField, ExpressionWrapper
-from django.urls import reverse
-from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
-from django.views.decorators.http import require_POST
-from django.middleware.csrf import get_token
-from .forms import CheckoutForm
-from decimal import Decimal
 
 
 @login_required
@@ -42,7 +37,7 @@ def home(request):
     try:
         profile = request.user.profile
     except AttributeError:
-        return redirect('access-denied')  # Redirect if the user does not have a profile
+        return redirect('access-denied')  
 
     role = profile.role
 
@@ -94,77 +89,216 @@ def home(request):
             'price_max': price_max,
         })
     else:
-        return redirect('access-denied')  # Redirect if the role is unrecognized
+        return redirect('access-denied')  
 
 
 def profile(request):
-    # Your view logic here
     return render(request, 'profile.html')
 
 
-def register_view(request):
+# Admin Registration
+@csrf_exempt
+def register_admin(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()  # Save the user
-            
-            # Check if the profile already exists
-            profile, created = Profile.objects.get_or_create(user=user)
-            if created:
-                # Only set the role if a new profile is created
-                profile.role = 'customer'  
+            user = form.save()
+           
+              # Check if profile exists, or create one with role 'vendor'
+            profile, created = Profile.objects.get_or_create(user=user, defaults={'role': 'admin'})
+
+            if not created:
+                profile.role = 'admin'
                 profile.save()
-                messages.success(request, 'Registration successful. You can now log in.')
-            else:
-                messages.warning(request, 'Profile already exists. You can log in now.')
-                
-            return redirect('login')  # Redirect to login page after registration
+
+            return redirect('login')
     else:
-        form = UserCreationForm()
+        form = UserRegistrationForm()
 
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'registration/register_admin.html', {'form': form})
 
+
+# Vendor Registration
+@csrf_exempt
+def register_vendor(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            
+              # Check if profile exists, or create one with role 'vendor'
+            profile, created = Profile.objects.get_or_create(user=user, defaults={'role': 'vendor'})
+
+            if not created:
+                profile.role = 'vendor'
+                profile.save()
+
+            return redirect('login')  
+    else:
+        form = UserRegistrationForm()
+
+    return render(request, 'registration/register_vendor.html', {'form': form})
+
+
+# Delivery Personnel Registration
+@csrf_exempt
+def register_delivery_personnel(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+
+              # Check if profile exists, or create one with role 'vendor'
+            profile, created = Profile.objects.get_or_create(user=user, defaults={'role': 'delivery_personnel'})
+
+            if not created:
+                profile.role = 'delivery_personnel'
+                profile.save()
+
+            return redirect('login')
+    else:
+        form = UserRegistrationForm()
+
+    return render(request, 'registration/register_delivery_personnel.html', {'form': form})
+
+# Customer Registration
+@csrf_exempt
+def register_customer(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+           
+            
+            # Check if a profile already exists for the user
+            profile, created = Profile.objects.get_or_create(user=user, defaults={'role': 'customer'})
+
+            if not created:
+                # If a profile exists, update the role if necessary
+                profile.role = 'customer'
+                profile.save()
+
+            return redirect('login')
+    else:
+        form = UserRegistrationForm()
+
+    return render(request, 'registration/register_customer.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
+        form = LoginForm(request.POST)
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            # Check if the user's Customer profile is complete
-            try:
-                customer = Customer.objects.get(user=user)
-                if not (customer.address and customer.phone_number):
-                    return redirect('create_customer_profile')
-            except Customer.DoesNotExist:
-                return redirect('create_customer_profile')
-            return redirect('home')
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+
+                # Access the user profile
+                try:
+                    profile = user.profile  
+                    role = profile.role
+
+                    # Check if user profile is already complete
+                    if role == 'vendor' and not hasattr(profile, 'vendor'):
+                        return redirect('create_vendor_profile')  
+                    elif role == 'delivery_personnel' and not hasattr(profile, 'deliverypersonnel'):
+                        return redirect('create_delivery_personnel_profile')  
+                    elif role == 'admin' and not hasattr(profile, 'admin'):
+                        return redirect('create_admin_profile')
+                    elif role == 'customer' and not hasattr(profile, 'customer'):
+                        return redirect('create_customer_profile')  
+                    else:
+                        # If profile already exists, redirect to their respective dashboard
+                        if role == 'vendor':
+                            return redirect('vendor_dashboard')
+                        elif role == 'delivery_personnel':
+                            return redirect('delivery_personnel_dashboard')
+                        elif role == 'admin':
+                            return redirect('admin_dashboard')
+                        elif role == 'customer':
+                            return redirect('home')
+                except Profile.DoesNotExist:
+                    messages.error(request, 'No profile found for this user. Please create one.')
+                    return redirect('create_profile') 
+
+            else:
+                messages.error(request, 'Invalid username or password.')
+                return redirect('login') 
+
     else:
-        form = AuthenticationForm()
+        form = LoginForm()
+    
     return render(request, 'registration/login.html', {'form': form})
 
 @csrf_exempt
 @login_required
-def create_customer_profile(request):
-    # Redirect non-customer users to their respective dashboard
-    if request.user.profile.role != 'customer':
-        if request.user.profile.role == 'admin':
-            return redirect('admin_dashboard')
-        elif request.user.profile.role == 'vendor':
-            return redirect('vendor_dashboard')
-        elif request.user.profile.role == 'delivery_personnel':
-            return redirect('delivery_personnel_dashboard')
-        else:
-            return redirect('home')
+def create_vendor_profile(request):
+    if request.method == 'POST':
+        business_name = request.POST.get('business_name')
+        business_address = request.POST.get('business_address')
+        user = request.user
 
-    # Get or create the customer profile
+        profile = Profile.objects.get(user=user)
+        Vendor.objects.create(
+            profile=profile,
+            business_name=business_name,
+            business_address=business_address
+        )
+        return redirect('vendor_dashboard')
+
+    return render(request, 'registration/create_vendor_profile.html')
+
+@csrf_exempt
+@login_required
+def create_delivery_personnel_profile(request):
+    if request.method == 'POST':
+        address = request.POST.get('address')
+        phone = request.POST.get('phone')
+        vehicle_type = request.POST.get('vehicle_type')
+        vehicle_number = request.POST.get('vehicle_number')
+        user = request.user
+
+        profile = Profile.objects.get(user=user)
+        DeliveryPersonnel.objects.create(
+            profile=profile,
+            address=address,
+            phone=phone,
+            vehicle_type=vehicle_type,
+            vehicle_number=vehicle_number
+        )
+        return redirect('delivery_personnel_dashboard')
+
+    return render(request, 'registration/create_delivery_personnel_profile.html')
+
+
+@csrf_exempt
+@login_required
+def create_admin_profile(request):
+    user = request.user
+    profile = Profile.objects.get(user=user)
+
+    if request.method == 'POST':
+        permission_level = request.POST.get('permission_level')
+        Admin.objects.create(
+            profile=profile,
+            permission_level=permission_level
+        )
+        return redirect('admin_dashboard')
+
+    return render(request, 'registration/create_admin_profile.html')
+
+@csrf_exempt
+@login_required
+def create_customer_profile(request):
     customer, created = Customer.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         form = CustomerForm(request.POST, instance=customer, user=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Profile updated successfully!')
+            messages.success(request, 'Customer profile updated successfully!')
             return redirect('home')
     else:
         form = CustomerForm(instance=customer, user=request.user)
@@ -174,8 +308,10 @@ def create_customer_profile(request):
 
 @login_required
 def logout_view(request):
+    print("Logout view accessed")
     logout(request)
-    return redirect('login_view')
+    messages.success(request, "You have been logged out successfully.")
+    return redirect('login')
 
 
 def password_reset(request):
@@ -222,11 +358,16 @@ def admin_dashboard(request):
     delivery_partners = Profile.objects.filter(role='delivery_personnel')
     orders = Order.objects.all()
 
-    # Count orders and deliveries
+    # Count total orders
     order_count = orders.count()
-    delivery_count = Order.objects.filter(delivery_partner__isnull=False).count()
     
-      # Sales report: calculate total sales
+    # Count total deliveries: all orders that have been delivered
+    delivered_orders_count = orders.filter(status='Delivered').count()
+    
+    # Remaining deliveries: total orders minus delivered orders
+    remaining_deliveries = order_count - delivered_orders_count
+    
+    # Sales report: calculate total sales
     total_sales = sum(order.total_amount for order in orders)
 
     context = {
@@ -239,8 +380,8 @@ def admin_dashboard(request):
         'customer_count': customers.count(),
         'delivery_personnel_count': delivery_partners.count(),
         'orders': orders,
-        'delivery_count': delivery_count, # Add this line to include delivery count
-        'delivery_partners': delivery_partners,  # Add delivery partners to context
+        'delivery_count': remaining_deliveries, 
+        'delivery_partners': delivery_partners,  
          'total_sales': total_sales
     }
 
@@ -253,11 +394,18 @@ def vendor_dashboard(request):
     if request.user.profile.role == 'vendor':
         vendor = get_object_or_404(Vendor, profile=request.user.profile)
         vendor_products = Product.objects.filter(vendor=vendor)
+
+         # Get orders specific to the vendor
+        vendor_orders = Order.objects.filter(vendor=vendor).order_by('-ordered_at')
+
     else:
         vendor_products = Product.objects.all()  # Admin view all products
     
-    vendor_orders = Order.objects.filter(vendor__profile=request.user.profile)
+        vendor_orders = Order.objects.all().order_by('-ordered_at')
+
+
     context = {
+         'welcome_message': f"Welcome, {request.user.username}", 
         'vendor_products': vendor_products,
         'product_count': vendor_products.count(),
         'orders': vendor_orders,
@@ -281,7 +429,7 @@ def customer_dashboard(request):
 
         # Get the total number of orders and deliveries
         order_count = customer_orders.count()
-        delivery_count = Delivery.objects.filter(order__delivery_partner__isnull=False).count()  # Count deliveries
+        delivery_count = customer_orders.filter(status='Delivered').count()  # Count deliveries
 
         context = {
             'orders': customer_orders,
@@ -290,7 +438,6 @@ def customer_dashboard(request):
         }
         return render(request, 'customer_dashboard.html', context)
 
-    # Redirect to appropriate dashboard if not a customer or admin
     return redirect('admin_dashboard') if is_admin(request.user) else redirect('vendor_dashboard')
 
 
@@ -304,10 +451,9 @@ def delivery_personnel_dashboard(request):
             delivery_orders = Order.objects.filter(delivery_partner=request.user.profile).select_related('customer', 'vendor')
 
         # Get the total number of orders and deliveries
-        order_count = Order.objects.count()
-        delivery_count = Order.objects.filter(delivery_partner__isnull=False).count()
+        order_count = delivery_orders.count()  # Count orders for this specific delivery personnel
+        delivery_count = delivery_orders.filter(status='Delivered').count() 
 
-        # Handle status updates
         if request.method == 'POST':
             order_id = request.POST.get('order_id')
             new_status = request.POST.get('status')
@@ -320,13 +466,13 @@ def delivery_personnel_dashboard(request):
                 messages.error(request, 'Order not found or you do not have permission to update it.')
 
         context = {
+            'welcome_message': f"Welcome, {request.user.username} ",
             'delivery_orders': delivery_orders.order_by('-ordered_at'),
             'order_count': order_count,
             'delivery_count': delivery_count,
         }
         return render(request, 'delivery_personnel_dashboard.html', context)
 
-    # Redirect to admin dashboard if not a delivery personnel or admin
     return redirect('admin_dashboard') if is_admin(request.user) else redirect('vendor_dashboard')
 
 
@@ -361,6 +507,7 @@ def update_product(request, product_id):
 
     return render(request, 'update_product.html', {'form': form})
 
+
 @login_required
 @user_passes_test(is_vendor_or_admin, login_url='/grocery/access-denied/')
 def delete_product(request, product_id):
@@ -369,15 +516,18 @@ def delete_product(request, product_id):
     if request.method == "POST":
         product.delete()
         messages.success(request, "Product deleted successfully!")
-        return redirect('product_list')  # Assuming 'product_list' is the view that lists all products
+        return redirect('product_list') 
     
     return render(request, 'delete_product.html', {'product': product})
+
+
 
 def categories_view(request):
     categories = Category.objects.all()
     return render(request, 'categories.html', {
         'categories': categories
     })
+
 
 @login_required
 def category_detail(request, category_id):
@@ -389,10 +539,12 @@ def category_detail(request, category_id):
         'products': products,
     })
 
+
 @login_required
 def category_list(request):
     categories = Category.objects.prefetch_related('subcategories').all()
     return render(request, 'categories.html', {'categories': categories})
+
 
 @login_required
 def subcategory_products(request, subcategory_id):
@@ -463,7 +615,7 @@ def product_list(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    reviews = product.reviews.all()
+    reviews = product.reviews.all().order_by('-created_at')
     avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
 
     return render(request, 'product_detail.html', {
@@ -472,10 +624,6 @@ def product_detail(request, product_id):
         'avg_rating': avg_rating,
     })
 
-
-def browse_products(request):
-    # Your view logic here
-    return render(request, 'browse_products.html')
 
 @login_required
 def update_cart_button(request):
@@ -495,25 +643,18 @@ def add_to_cart(request, product_id):
     if quantity <= 0:
         return JsonResponse({'message': 'Invalid quantity'}, status=400)
     
-    # Check if the requested quantity exceeds available stock
-    if product.stock < quantity:
-        if product.stock == 0:
-            return JsonResponse({'message': 'Sorry, this product is out of stock.'}, status=400)
-        else:
-            return JsonResponse({'message': f'Only {product.stock} units available.'}, status=400)
-
-
+    print(f"Adding {quantity} of {product.name} to cart for {request.user.customer}")
+    
     # Check if the cart already has this product
     cart_item, created = Cart.objects.get_or_create(
-        customer=request.user.customer, product=product
+        customer=request.user.customer, product=product, defaults={'quantity': 0}
     )
     
-    if not created:
-        cart_item.quantity += quantity
-    else:
-        cart_item.quantity = quantity
+    cart_item.quantity = quantity
     
     cart_item.save()
+
+    print(f"Cart item saved: {cart_item}")
 
     # Calculate total quantity of products in the cart
     total_quantity = Cart.objects.filter(customer=request.user.customer).aggregate(
@@ -530,14 +671,19 @@ def view_cart(request):
     # Calculate total quantity and total amount
     total_quantity = cart_items.aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
 
+    # Initialize total amount
+    total_amount = 0
+
     # Calculate total price for each cart item (quantity * price per unit)
     for item in cart_items:
-        item.total_price = item.quantity * item.product.price
-
-    # Calculate total cart amount
-    total_amount = cart_items.aggregate(total_amount=Sum(F('quantity') * F('product__price')))['total_amount'] or 0
+        print(f'Item ID: {item}, Quantity: {item.quantity}, Price: {item.product.price}')
+        if item.quantity is not None and item.product.price is not None:
+            item.total_price = item.quantity * item.product.price
+            total_amount += item.total_price 
+        else:
+            item.total_price = 0  # Assign zero if quantity or price is None
     
-     # Store total amount in session
+    # Store total amount in session
     request.session['total_amount'] = float(total_amount)
 
     return render(request, 'view_cart.html', {
@@ -545,29 +691,6 @@ def view_cart(request):
         'total_quantity': total_quantity,
         'total_amount': total_amount
     })
-
-
-    
-
-@csrf_exempt
-def update_cart(request, item_id):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            quantity = data.get('quantity')
-            customer = request.user.customer  # Ensure the user has a customer profile
-
-            if quantity is not None:
-                cart_item = Cart.objects.get(id=item_id, customer=customer)
-                cart_item.quantity = quantity
-                cart_item.save()
-                return JsonResponse({'success': True})
-            else:
-                return JsonResponse({'success': False, 'error': 'Quantity not provided'})
-        except Cart.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Cart item does not exist'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
 
 
 @csrf_exempt
@@ -579,9 +702,8 @@ def remove_from_cart(request, cart_item_id):
         
         if cart_item:
             cart_item.delete()
-        return redirect('view_cart')  # Redirect back to the cart page
+        return redirect('view_cart')  
     return redirect('view_cart')
-
 
 
 @login_required
@@ -590,6 +712,7 @@ def checkout(request):
         address = request.POST.get('address')
         phone_number = request.POST.get('phone_number')
 
+        # Validate address and phone number
         if not address or not phone_number:
             return render(request, 'checkout.html', {
                 'error': 'Address and phone number are required.',
@@ -606,7 +729,7 @@ def checkout(request):
         customer.phone_number = phone_number
         customer.save()
 
-        # Fetch cart items and determine vendor
+        # Fetch cart items
         cart_items = Cart.objects.filter(customer=customer)
         if not cart_items.exists():
             return render(request, 'checkout.html', {
@@ -617,16 +740,7 @@ def checkout(request):
 
         vendor = cart_items.first().product.vendor
         
-        # Check stock availability before creating the order
-        for item in cart_items:
-            if item.product.stock < item.quantity:
-                return render(request, 'checkout.html', {
-                    'error': f"Only {item.product.stock} units of {item.product.name} are available.",
-                    'total_amount': request.session.get('total_amount', 0),
-                    'customer': customer
-                })
-
-        # Create the order
+        # Create the order first
         order = Order.objects.create(
             customer=customer,
             vendor=vendor,
@@ -634,42 +748,81 @@ def checkout(request):
             status='Placed',
         )
 
-        # Now ordered_at will be set to the current time in Asia/Kolkata
         print(f"Order created at: {order.ordered_at}")
 
-
-        # Save order items
+        # Check stock availability and create order items
         for item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price
-            )
+            print(f"Product: {item.product.name}, Stock: {item.product.stock}, Quantity: {item.quantity}")
 
-            # Reduce the stock after order confirmation
-            item.product.stock -= item.quantity
-            item.product.save()
+            # Handle None or invalid quantity
+            quantity = item.quantity if item.quantity is not None and item.quantity > 0 else 0
+            
+            # Ensure stock is checked properly
+            stock = item.product.stock or 0
+            
+            if stock < quantity:
+                return render(request, 'checkout.html', {
+                    'error': f"Only {stock} units of {item.product.name} are available.",
+                    'total_amount': request.session.get('total_amount', 0),
+                    'customer': customer
+                })
+
+            # Create the order item only if quantity is valid
+            if quantity > 0:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    quantity=quantity,
+                    price=item.product.price
+                )
+
+                # Reduce the stock after order confirmation
+                item.product.stock -= quantity
+                item.product.save()
+
+                 # **Update the SalesReport here**
+                sales_report, created = SalesReport.objects.get_or_create(
+                    product_name=item.product.name,
+                    sale_date=timezone.now().date(),
+                    defaults={'units_sold': 0, 'total_sales': 0}
+                )
+
+                # Update the sales report values
+                sales_report.units_sold += quantity
+                sales_report.total_sales += quantity * item.product.price
+                sales_report.save()
+
+
+            else:
+                print(f"Invalid quantity for {item.product.name}, skipping order item creation.")
 
         # Clear cart after order is placed
         cart_items.delete()
 
         # Clear the total amount from session
         del request.session['total_amount']
+        
+        # Log the activity
+        UserActivity.objects.create(
+            user=request.user,
+            action='Placed an order',
+            order=order,  
+            timestamp=timezone.now()
+        )
+        print(f"User Activity Logged: {request.user} - Placed an order at {timezone.now()}")
 
         # Send Notifications after order creation
         send_order_confirmation_email(request.user, order)
         send_order_confirmation_sms(request.user, order)
         send_push_notification(request.user, f'Your order #{order.id} has been placed!')
 
-        # Redirect to order success page
         return redirect('order_success', order_id=order.id)
 
     else:
         customer = request.user.customer if request.user.is_authenticated else None
         total_amount = request.session.get('total_amount', 0)
         
-        # Convert total_amount back to Decimal if needed
+        # Convert total_amount back to Decimal
         if isinstance(total_amount, float):
             total_amount = Decimal(str(total_amount))
 
@@ -690,37 +843,40 @@ def order_detail(request, order_id):
         # Ensure the user has a Customer profile
         customer_profile = request.user.customer
     except Customer.DoesNotExist:
-        return redirect('home')  # Redirect or handle error if the customer profile is missing
+        return redirect('home')  
 
     try:
         # Fetch the order for the logged-in user's customer
         order = Order.objects.get(id=order_id, customer=customer_profile)
         order_items = OrderItem.objects.filter(order=order)
-        delivery_partner = order.delivery_partner  # Retrieve delivery partner details
+        
+        # Fetch the latest Delivery object related to this order
+        delivery = Delivery.objects.filter(order=order).last()  
+        delivery_partner = delivery.delivery_partner if delivery else None
+        delivered_at = delivery.delivered_at if delivery else None  
     except Order.DoesNotExist:
-        return redirect('home')  # Redirect or handle error if the order is not found
+        return redirect('home')  
     
-     # Define the list of past statuses
+    # Define the list of past statuses
     statuses = ['Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Canceled']
-    
-     # Determine which statuses are past based on the current order status
+
     past_statuses = statuses[:statuses.index(order.status) + 1]
 
     return render(request, 'order_detail.html', {
         'order': order,
         'order_items': order_items,
-        'delivery_partner': delivery_partner,
-        'statuses': statuses,  # Pass delivery partner details to the template
-        'past_statuses': past_statuses
+        'delivery_partner': delivery_partner,  
+        'statuses': statuses,
+        'past_statuses': past_statuses,
+        'delivered_at': delivered_at 
     })
-
 
 @csrf_exempt
 @login_required
 def update_order_status(request, order_id):
     if request.method == 'POST':
         try:
-            data = request.POST  # Get the POST data
+            data = request.POST  
             new_status = data.get('status')
 
             if not new_status:
@@ -742,20 +898,24 @@ def update_order_status(request, order_id):
             delivery.save()
             order.save()
 
-            # Debug print statement
             print(f"Order {order_id} has been updated to status: {new_status}")
             
             # Send email notification to the customer
+            customer = order.customer
+            if customer is None or customer.user is None:
+                return HttpResponseBadRequest('Customer or associated user not found')
+
+
+            # Send email notification to the customer
             send_mail(
                 subject='Order Status Update',
-                message=f'Your order with ID {order.id} has been updated to "{new_status}".',
-                from_email='ashwithar2001@gmail.com',  # Update with your sender email
-                recipient_list=[order.customer.user.email],  # Send email to customer
+                message=f'Your order with ID {order} has been updated to "{new_status}".',
+                from_email='ashwithar2001@gmail.com', 
+                recipient_list=[customer.user.email],  # Send email to customer
                 fail_silently=False,
             )
             
-            # Redirect back to the dashboard or return a success message
-            return redirect('delivery_personnel_dashboard')  # Change this to your desired URL
+            return redirect('delivery_personnel_dashboard')  
         except Order.DoesNotExist:
             return HttpResponseNotFound('Order not found')
         except Delivery.DoesNotExist:
@@ -764,37 +924,21 @@ def update_order_status(request, order_id):
         return HttpResponseBadRequest('Invalid request method')
 
 
-
 @login_required
 def order_history(request):
-    # Fetch all orders for the logged-in customer
-    customer_profile = request.user.customer  # Assuming there's a related `Customer` profile
+    customer_profile = request.user.customer 
     orders = Order.objects.filter(customer=customer_profile).order_by('-ordered_at')
 
     return render(request, 'order_history.html', {'orders': orders})
 
 
-def place_order(request):
-    if request.method == 'POST':
-        cart_items = Cart.objects.filter(customer=request.user.customer)
-        total_amount = sum(item.get_price() * item.quantity for item in cart_items)
-        
-        # Logic to handle payment (e.g., redirect to payment gateway)
-        
-        # Clear cart after successful payment
-        cart_items.delete()
-        
-        return redirect('order_confirmation')  # Redirect to order confirmation page or similar
-
-    return redirect('view_cart')  # Handle error if not POST request
-
-
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def delivery_management(request):
-    orders = Order.objects.filter(delivery_partner__isnull=True).order_by('-ordered_at')  # Sort in descending order by ordered_at
+    orders = Order.objects.filter(delivery_partner__isnull=True).order_by('-ordered_at')  
 
     return render(request, 'delivery_management.html', {'orders': orders})
+
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
@@ -815,10 +959,23 @@ def assign_delivery_partner(request, order_id):
                         'error': 'Delivery partner not found.'
                     })
 
+                # Check the number of undelivered orders
+                pending_orders_count = Delivery.objects.filter(delivery_partner=delivery_partner, status__in=['Placed', 'Processing', 'Shipped', 'Out for Delivery']).count()
+
+                # Define the max limit of orders a delivery partner can handle (e.g., 10)
+                MAX_ORDERS = 10
+
+                if pending_orders_count >= MAX_ORDERS:
+                    return render(request, 'assign_delivery_partner.html', {
+                        'order': order,
+                        'delivery_partners': delivery_partners,
+                        'error': f'{delivery_partner.user.get_full_name()} already has {pending_orders_count} pending orders and cannot take more.'
+                    })
+
                 # Assign the delivery partner
                 order.delivery_partner = delivery_partner
-                order.save()  # Ensure the order is saved with the delivery partner
-
+                order.save()  
+                
                 # Handle delivery creation or update
                 delivery, created = Delivery.objects.update_or_create(
                     order=order,
@@ -828,7 +985,7 @@ def assign_delivery_partner(request, order_id):
                     }
                 )
 
-                return redirect('order_detail', order_id=order.id)  # Redirect to order detail after assignment
+                return redirect('order_detail', order_id=order.id) 
 
             except Profile.DoesNotExist:
                 return render(request, 'assign_delivery_partner.html', {
@@ -843,94 +1000,37 @@ def assign_delivery_partner(request, order_id):
     })
 
 
-
 @login_required
 def update_delivery_status(request, order_id):
-    # Logic to update the order status
-    order = Order.objects.get(id=order_id)
-    order.status = request.POST['status']
-    order.save()
+    if request.method == 'POST':
+        order = Order.objects.get(id=order_id)
+        order.status = request.POST['status']
+        order.save()
 
-    # Send WebSocket message
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        'delivery_status',
-        {
-            'type': 'send_status_update',
-            'orderId': order.id,
-            'status': order.status,
-        }
-    )
+        # Send WebSocket message
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return HttpResponse('Channel layer is not available.', status=500)
+        
+        async_to_sync(channel_layer.group_send)(
+            'delivery_status',
+            {
+                'type': 'send_status_update',
+                'orderId': order,
+                'status': order.status,
+            }
+        )
+        
+        return HttpResponse('Delivery status updated successfully.')  
+    else:
+        return HttpResponse('Invalid request method.', status=400)
+    
 
-
-
-def delivery_personnel_list(request):
-    deliveries = Delivery.objects.all()  # Adjust if needed to get the correct deliveries
-    return render(request, 'delivery_personnel_list.html', {'deliveries': deliveries})
-
-def delivery_personnel_detail(request, delivery_id):
-    delivery = get_object_or_404(Delivery, id=delivery_id)
-    return render(request, 'delivery_personnel_detail.html', {'delivery': delivery})
 
 def order_tracking(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_tracking.html', {'order': order})
 
-@login_required
-def create_vendor(request):
-    if request.method == 'POST':
-        form = VendorForm(request.POST)
-        if form.is_valid():
-            vendor = form.save(commit=False)
-            vendor.profile = request.user.profile  # Associate the vendor with the logged-in user
-            vendor.save()
-            return redirect('vendor_list')
-    else:
-        form = VendorForm()
-    return render(request, 'create_vendor.html', {'form': form})
-
-
-@login_required
-def edit_vendor(request, vendor_id):
-    vendor = get_object_or_404(Vendor, pk=vendor_id)
-    if vendor.profile.user != request.user:  # Ensure the vendor is associated with the logged-in user
-        return redirect('unauthorized')  # Redirect to an unauthorized page or show an error
-    if request.method == 'POST':
-        form = VendorForm(request.POST, instance=vendor)
-        if form.is_valid():
-            form.save()
-            return redirect('vendor_detail', vendor_id=vendor.id)
-    else:
-        form = VendorForm(instance=vendor)
-    return render(request, 'edit_vendor.html', {'form': form})
-
-@login_required
-def delete_vendor(request, vendor_id):
-    vendor = get_object_or_404(Vendor, pk=vendor_id)
-    if vendor.profile.user != request.user:  # Ensure the vendor is associated with the logged-in user
-        return redirect('unauthorized')  # Redirect to an unauthorized page or show an error
-    vendor.delete()
-    return redirect('vendor_list')
-
-
-def vendor_list(request):
-    vendors = Vendor.objects.all()
-    return render(request, 'vendor_list.html', {'vendors': vendors})
-
-
-def vendor_detail(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
-    return render(request, 'vendor_detail.html', {'vendor': vendor})
-
-@permission_required('grocery.can_manage_business', raise_exception=True)
-def manage_business(request):
-    # View logic here
-    pass
-
-@permission_required('grocery.can_edit_own_profile', raise_exception=True)
-def edit_vendor_profile(request, vendor_id):
-    # Your view logic here
-    pass
 
 def access_denied(request):
     return render(request, 'access_denied.html')
@@ -962,8 +1062,8 @@ def proceed_to_payment(request, order_id):
             razorpay_order = client.order.create(dict(
                 amount=int(total_amount * 100),  # Amount in paise (100 paise = 1 INR)
                 currency='INR',
-                receipt=str(order.id),
-                payment_capture='1'  # Auto capture payment
+                receipt=str(order),
+                payment_capture='1'  
             ))
 
             # Save the Razorpay order ID in the existing order
@@ -979,7 +1079,7 @@ def proceed_to_payment(request, order_id):
                 'amount': total_amount * 100,  # Amount in paise
                 'order_id': razorpay_order['id'],
                 'currency': 'INR',
-                'receipt': str(order.id),
+                'receipt': str(order),
                 'total_amount': total_amount,
                 'csrf_token': csrf_token
             }
@@ -987,13 +1087,11 @@ def proceed_to_payment(request, order_id):
             return render(request, 'proceed_to_payment.html', context)
         
         except Order.DoesNotExist:
-            return redirect('home')  # Redirect if order is not found
+            return redirect('home') 
         except Exception as e:
-            # Handle any unexpected errors (optional: add logging here)
             return HttpResponse(f"An error occurred: {str(e)}")
 
     elif request.method == "GET" and 'razorpay_payment_id' in request.GET:
-        # Successful payment logic
         razorpay_payment_id = request.GET['razorpay_payment_id']
         try:
             # Fetch the order again
@@ -1003,15 +1101,15 @@ def proceed_to_payment(request, order_id):
             order.status = 'Delivered'
             order.save()
 
-            # Redirect to customer dashboard or order details page
-            return redirect('order_detail', order_id=order.id)  # or to the order details page
+            return redirect('order_detail', order_id=order) 
 
         except Order.DoesNotExist:
-            return redirect('home')  # Redirect if order is not found
+            return redirect('home')
         except Exception as e:
             return HttpResponse(f"An error occurred during payment confirmation: {str(e)}")
     else:
         return redirect('home')
+
 
 @csrf_exempt
 def payment_success(request):
@@ -1032,28 +1130,37 @@ def payment_success(request):
         try:
             client.utility.verify_payment_signature(params_dict)
         except Exception as e:
-            # Redirect to payment failure page if verification fails
             return redirect('payment_failure')
-            
+
         # Retrieve the order and update status
         try:
             order = Order.objects.get(razorpay_order_id=razorpay_order_id)
             order.status = 'Delivered'
             order.save()
 
-            # Generate invoice as a PDF using the generate_invoice function
-            invoice_pdf = generate_invoice(order)
+            # Update the associated delivery record
+            delivery = get_object_or_404(Delivery, order=order)
+            delivery.status = 'Delivered'
+            delivery.delivered_at = timezone.now() 
+            delivery.save()
 
-            # Create and save the invoice record in the database
+            # Generate and attach invoice as a PDF
+            invoice_pdf = generate_invoice(order)
             invoice = Invoice(
                 order=order,
-                amount=order.total_amount,  # Make sure to adjust this based on your order model
-                pdf_file=ContentFile(invoice_pdf, name=f'invoice_{order.id}.pdf')
+                amount=order.total_amount,
+                pdf_file=ContentFile(invoice_pdf, name=f'invoice_{order}.pdf')
             )
             invoice.save()
 
+            # Get customer and ensure user exists
+            customer = order.customer
+            if not customer or not customer.user:
+                messages.error(request, "Customer or User not found.")
+                return redirect('home')
+
             # Send the invoice via email
-            customer_email = order.customer.user.email
+            customer_email = customer.user.email
             email_subject = 'Your Invoice from Smart Grocery'
             email_body = 'Thank you for your purchase. Please find the attached invoice for your recent order.'
             email = EmailMessage(
@@ -1062,26 +1169,23 @@ def payment_success(request):
                 settings.DEFAULT_FROM_EMAIL,
                 [customer_email]
             )
+            email.attach(f'invoice_{order}.pdf', invoice_pdf, 'application/pdf')
 
-            # Attach the PDF invoice
-            email.attach(f'invoice_{order.id}.pdf', invoice_pdf, 'application/pdf')
-
-             # Send email and check if successful
             if email.send():
                 invoice.email_sent = True
                 invoice.save()
             else:
                 messages.error(request, "Failed to send invoice email.")
-
+            
             # Clear the cart after successful payment
-            Cart.objects.filter(customer=request.user.customer).delete()
+            Cart.objects.filter(customer=customer).delete()
 
-            # Render the success page with order details
-         
-             # Redirect to leave review page with product IDs from the order
-            product_ids = order.items.values_list('product_id', flat=True)  # Adjust based on your OrderItem model
-            product_ids_str = ','.join(map(str, product_ids)) 
-            return render(request, 'payment_success.html', {'order': order, 'product_ids':  product_ids_str})
+            
+            # Render the payment success template with product IDs
+            return render(request, 'payment_success.html', {
+                 'order': order,
+               
+            })
         
         except Order.DoesNotExist:
             messages.error(request, 'Order not found.')
@@ -1098,13 +1202,13 @@ def send_order_confirmation_email(user, order):
     subject = 'Order Confirmation'
     message = f'Dear {user.first_name}, your order #{order.id} has been confirmed!'
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = [user.email]  # Use the real or dummy email for testing
+    recipient_list = [user.email]  
     
     send_mail(subject, message, from_email, recipient_list)
 
 
 def send_order_confirmation_sms(user, order):
-    phone_number = user.profile.phone_number  # Assuming you have a Profile model with phone_number
+    phone_number = user.profile.phone_number 
     message = f'Your order #{order.id} has been confirmed!'
     
     # Simulate SMS sending (print to console)
@@ -1115,38 +1219,72 @@ def send_push_notification(user, message):
     # Simulate sending a push notification
     print(f"Sending push notification to {user.username}: {message}") 
 
+
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def sales_report(request):
-    orders = Order.objects.all()
-    total_sales = sum(order.total_amount for order in orders)
+    all_orders = Order.objects.prefetch_related('items__product').order_by('-ordered_at')
 
+    sales_data = []
+    total_sales_amount = 0
+
+    for order in all_orders:
+        for item in order.items.all():
+            if item.product and item.quantity > 0:
+                # Prepare the sales data
+                product_name = item.product.name
+                units_sold = item.quantity
+                total_sales = item.price * item.quantity
+
+                # Append to the sales data list for display in template
+                sales_data.append({
+                    'product_name': product_name,
+                    'units_sold': units_sold,
+                    'total_sales': total_sales,
+                    'sale_date': order.ordered_at
+                })
+
+                total_sales_amount += total_sales
+
+                # Check if the report already exists for the product and sale date
+                report, created = SalesReport.objects.get_or_create(
+                    product_name=product_name,
+                    sale_date=order.ordered_at,
+                    defaults={'units_sold': units_sold, 'total_sales': total_sales}
+                )
+
+                # If the report already exists, update the fields correctly
+                if not created:  # The report already existed
+                    report.units_sold += units_sold
+                    report.total_sales += total_sales
+                    report.save()
+
+    # Pass the sales data to the template for display               
     context = {
-        'orders': orders,
-        'total_sales': total_sales,
+        'sales_data': sales_data,
+        'total_sales_amount': total_sales_amount
     }
 
     return render(request, 'sales_report.html', context)
-
+    
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def user_list(request):
-    users = User.objects.all()  # Fetch all users
+    users = User.objects.all() 
     return render(request, 'user_list.html', {'users': users})
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def order_list(request):
-    orders = Order.objects.all().order_by('-ordered_at')  # Fetch all orders
+    orders = Order.objects.all().order_by('-ordered_at') 
     return render(request, 'order_list.html', {'orders': orders})
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def add_user(request):
     if request.method == 'POST':
-        # Handle form submission to create a user
-        pass  # Implement user creation logic here
+        pass 
     return render(request, 'add_user.html')
     
 @login_required
@@ -1154,7 +1292,7 @@ def add_user(request):
 def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     if request.method == 'POST':
-        user.delete()  # Delete user logic
+        user.delete()  
         return redirect('user_list')
     return render(request, 'delete_user.html', {'user': user})
     
@@ -1163,81 +1301,60 @@ def delete_user(request, user_id):
 def update_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     if request.method == 'POST':
-        # Update user logic
-        pass  # Implement user update logic here
+        pass 
     return render(request, 'update_user.html', {'user': user})
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def user_activity_report(request):
-     # Fetch or create the activity data here
-    activity_data = UserActivity.objects.all()  # Example, adjust as necessary
+    activities = UserActivity.objects.all().order_by('-timestamp')
 
-    # Implement logic to gather user activity data
-    context = {
-        'activity_data': activity_data,  # Replace with actual data
-    }
-    return render(request, 'user_activity_report.html', context)
+    for activity in activities:
+        activity.timestamp = timezone.localtime(activity.timestamp)
+
+    return render(request, 'user_activity_report.html', {'activities': activities})
     
-
 
 @login_required
 @user_passes_test(is_admin, login_url='/grocery/access-denied/')
 def delivery_performance_report(request):
-    deliveries = Delivery.objects.select_related('delivery_partner').all()  # Optimize the query
-
-     # Update the status for each delivery based on the delivered_at field
+    deliveries = Delivery.objects.select_related('delivery_partner').all() 
+    # Update the status for each delivery based on the delivered_at field
     for delivery in deliveries:
-        delivery.update_status()  # Call the method to update the status based on delivered_at
+        delivery.update_status()  
 
     return render(request, 'delivery_performance_report.html', {'deliveries': deliveries})
 
-
 @login_required
-def leave_review(request, product_ids):
-    # Split and filter product IDs to ensure they are valid
-    product_ids_list = [pid for pid in product_ids.split(',') if pid.isdigit()]
-    
-    # Get the customer object
-    customer = get_object_or_404(Customer, user=request.user)
-
-    # Fetch all products the customer has purchased
-    purchased_product_ids = OrderItem.objects.filter(order__customer=customer).values_list('product_id', flat=True)
-
-    # If product_ids_list is empty or doesn't match purchased products, notify user
-    if not product_ids_list or not set(product_ids_list).issubset(set(purchased_product_ids)):
-        messages.error(request, "You can only leave reviews for products you have purchased.")
-        return redirect('home')
-
-    # Fetch the products based on the provided IDs
-    products = Product.objects.filter(id__in=product_ids_list)
+def leave_review(request, order_id):
+    print(f"Leaving review for order_id: {order_id}") 
+    order = get_object_or_404(Order, id=order_id)
+    products = order.items.all()  
+    print(f"Products in order: {products}") 
+    customer = request.user.customer  
 
     if request.method == 'POST':
+        print(request.POST)
         for product in products:
-            rating = request.POST.get(f'rating_{product.id}')
-            comment = request.POST.get(f'comment_{product.id}')
+            rating = request.POST.get(f'rating_{product.product.id}')
+            comment = request.POST.get(f'comment_{product.product.id}')
+            print(f"Product ID: {product.product.id}, Rating: {rating}, Comment: {comment}")  
+            
+            if rating or comment: 
+                review, created = Review.objects.get_or_create(
+                    product=product.product,
+                    customer=customer,
+                    defaults={'rating': rating, 'comment': comment}
+                )
+                if not created:
+                    review.rating = rating
+                    review.comment = comment
+                    review.save()
 
-            # Check if the customer has purchased this product
-            if product.id in purchased_product_ids:
-                if rating and comment:  # Ensure both rating and comment are provided
-                    review, created = Review.objects.get_or_create(
-                        product=product,
-                        customer=customer,
-                        defaults={'rating': rating, 'comment': comment}
-                    )
-                    if not created:
-                        # Update existing review
-                        review.rating = rating
-                        review.comment = comment
-                        review.save()
-                        messages.success(request, f"Your review for {product.name} has been updated.")
-                    else:
-                        messages.success(request, f"Your review for {product.name} has been submitted.")
-                else:
-                    messages.error(request, f"Please provide both a rating and a comment for {product.name}.")
-            else:
-                messages.error(request, f"You have not purchased {product.name}. Reviews can only be left for purchased products.")
-
-        return redirect('leave_review', product_ids=','.join(product_ids_list))
+        return redirect(reverse('thank_you'))
 
     return render(request, 'leave_review.html', {'products': products})
+
+
+def thank_you(request):
+    return render(request, 'thank_you.html')

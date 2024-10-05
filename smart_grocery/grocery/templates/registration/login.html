@@ -4,23 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Smart Grocery</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-image: url('path/to/your/smart-grocery-background.jpg'); /* Replace with your image path */
-            background-size: cover; /* Cover the entire viewport */
-            background-position: center; /* Center the background image */
-            color: #495057; /* Darker text for readability */
+            background-size: cover;
+            background-position: center;
+            color: #495057;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
         }
         .container {
-            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            background: rgba(255, 255, 255, 0.9);
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -30,7 +28,7 @@
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            color: #28a745; /* Green color for the title */
+            color: #28a745;
         }
         form {
             display: flex;
@@ -45,7 +43,7 @@
             transition: border-color 0.3s;
         }
         form input:focus {
-            border-color: #28a745; /* Change border color on focus */
+            border-color: #28a745;
             outline: none;
         }
         form button {
@@ -59,14 +57,14 @@
             transition: background 0.3s;
         }
         form button:hover {
-            background-color: #218838; /* Darker green on hover */
+            background-color: #218838;
         }
         p {
             text-align: center;
             margin-top: 15px;
         }
         a {
-            color: #007bff; /* Bootstrap primary link color */
+            color: #007bff;
             text-decoration: none;
         }
         a:hover {
@@ -82,7 +80,12 @@
             {{ form.as_p }}
             <button type="submit">Login</button>
         </form>
-        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+        <p>Don't have an account?<br>|
+            <a href="{% url 'register_customer' %}">Register as Customer</a><br>|
+            <a href="{% url 'register_vendor' %}">Register as Vendor</a><br>|
+            <a href="{% url 'register_delivery' %}">Register as Delivery Personnel</a><br>| 
+            <a href="{% url 'register_admin' %}">Register as Admin</a><br>
+        </p>
         <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
     </div>
 </body>

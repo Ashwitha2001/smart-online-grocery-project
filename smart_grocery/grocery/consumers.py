@@ -1,5 +1,5 @@
-# consumers.py
 import json
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class DeliveryStatusConsumer(AsyncWebsocketConsumer):
@@ -20,7 +20,7 @@ class DeliveryStatusConsumer(AsyncWebsocketConsumer):
         status = data['status']
 
         # Update the delivery status in the database
-        delivery = await Delivery.objects.get(id=delivery_id)
+        delivery = await database_sync_to_async(self.get_delivery)(delivery_id)
         delivery.status = status
         await database_sync_to_async(delivery.save)()
 
@@ -43,3 +43,8 @@ class DeliveryStatusConsumer(AsyncWebsocketConsumer):
             'delivery_id': delivery_id,
             'status': status
         }))
+
+    @database_sync_to_async
+    def get_delivery(self, delivery_id):
+        from grocery.models import Delivery  # Import here to avoid import errors
+        return Delivery.objects.get(id=delivery_id)

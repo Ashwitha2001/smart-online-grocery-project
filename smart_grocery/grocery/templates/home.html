@@ -1,13 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Smart Grocery</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
-         /* Additional styling for header */
         header {
             background-color: #f8f8f8;
             padding: 20px;
@@ -15,7 +13,6 @@
             border-bottom: 1px solid #ddd;
         }
 
-        /* Navigation styles */
         nav {
             background-color: #4CAF50;
             color: white;
@@ -45,7 +42,7 @@
         nav a:hover {
             color: #cce5ff;
         }
-        /* Additional styling for product layout */
+       
         .product-list {
             display: flex;
             flex-wrap: wrap;
@@ -85,7 +82,6 @@
             margin-bottom: 10px;
         }
 
-        /* Styling for categories */
         .category-list {
             display: flex;
             flex-wrap: wrap;
@@ -112,7 +108,6 @@
             margin: 5px 0;
         }
 
-        /* Notification styles */
         .notification {
             display: none;
             padding: 10px;
@@ -126,7 +121,6 @@
             z-index: 1000;
         }
 
-        /* Button styles */
         .view-cart-btn,
         .categories-btn {
             display: inline-block;
@@ -153,8 +147,8 @@
         .footer {
             text-align: center;
             margin-top: 20px;
-            color: #333; /* Footer text color */
-            font-weight: bold; /* Bold footer text */
+            color: #333; 
+            font-weight: bold; 
         }
     </style>
 </head>
@@ -166,7 +160,7 @@
             {% if customer.address %}
                 <p>Your Address: {{ request.user.customer.address }}</p>
             {% else %}
-                <p>No address found. Please update your profile.</p>
+                <p>No address found. Please <a href="{% url 'create_customer_profile' %}"> update your profile.</a></p>
             {% endif %}
         {% endif %}
     </header>
@@ -174,7 +168,6 @@
 
     <nav>
         <ul>
-            <!-- Show appropriate dashboard links based on user's role -->
             {% if user.is_authenticated %}
                 <li>Welcome, {{ user.first_name|default:user.username }}!</li>
 
@@ -194,7 +187,7 @@
                     <li><a href="{% url 'customer_dashboard' %}">Customer Dashboard</a></li>
                 {% endif %}
                 
-                <li><a href="{% url 'logout' %}">Logout</a></li>
+                <li><a href="{% url 'logout_view' %}">Logout</a></li>
             {% else %}
                 <li><a href="{% url 'login' %}">Login</a></li>
                 <li><a href="{% url 'register' %}">Register</a></li>
@@ -205,21 +198,18 @@
     <section>
         <h2>Products</h2>
 
-        <!-- Include search and filter form -->
         {% include '_search_filter.html' %}
 
         <div class="product-list">
             {% if products %}
                 {% for product in products %}
                 <div class="product-item">
-                    <!-- Display product image -->
                     {% if product.image %}
                         <img src="{{ product.image.url }}" alt="{{ product.name }}">
                     {% else %}
                         <img src="{% static 'images/no-image-available.png' %}" alt="No image available">
                     {% endif %}
 
-                    <!-- Display product details -->
                     <h3>{{ product.name }}</h3>
                     {% if product.average_rating %}
                         <p>Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
@@ -230,7 +220,6 @@
                     <p>{{ product.description }}</p>
                     <p>Price: ₹{{ product.price }}</p>
 
-                    <!-- Quantity input and Add to Cart form -->
                     <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
                         {% csrf_token %}
                         <label for="quantity">Quantity:</label>
@@ -245,7 +234,7 @@
         </div>
 
         <!-- View Cart button if items are in the cart -->
-        <a href="{% url 'view_cart' %}" class="view-cart-btn">View Cart (<span id="cart-count">{{ total_cart_quantity }}</span>)</a>
+        <a href="{% url 'view_cart' %}" class="view-cart-btn">View Cart (<span id="cart-count">0</span>)</a>
 
     </section>
 
@@ -255,10 +244,10 @@
     </section>
 
     <div class="footer">
-        <p>&copy; 2024 Smart Grocery</p> <!-- Company name -->
+        <p>&copy; 2024 Smart Grocery</p> 
     </div>
 
-    <!-- Notification element -->
+    <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>

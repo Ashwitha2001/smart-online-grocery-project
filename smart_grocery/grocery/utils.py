@@ -71,11 +71,11 @@ def generate_invoice(order):
     # Build PDF with the invoice and product sections
     elements = [
         invoice_header,
-        Spacer(1, 12),  # Space between invoice header and table
+        Spacer(1, 12),  
         invoice_table,
-        Spacer(1, 24),  # Space between invoice table and products header
+        Spacer(1, 24),  
         products_header,
-        Spacer(1, 12),  # Space between products header and table
+        Spacer(1, 12),  
         product_table
     ]
     doc.build(elements)

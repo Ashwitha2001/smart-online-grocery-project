@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ product.name }} - Product Details</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,8 +77,19 @@
 <body>
     <h1>{{ product.name }}</h1>
     <img src="{{ product.image.url }}" alt="{{ product.name }}">
-    <p class="rating">Average Rating: {{ product.average_rating|floatformat:1 }} / 5</p>
+    <h2>Average Rating: {{ avg_rating|floatformat:1 }} / 5</h2>
+    <p>
+        {% for i in "12345" %}
+            {% if forloop.counter <= avg_rating|floatformat:0|add:0 %}
+                ★  
+            {% else %}
+                ☆  
+            {% endif %}
+        {% endfor %}
+    </p>
 
+
+    
     {% if product.stock > 0 %}
         <form method="POST" action="{% url 'add_to_cart' product.id %}">
             {% csrf_token %}
@@ -93,12 +102,21 @@
         <p class="out-of-stock">Out of Stock</p>
     {% endif %}
 
-    <h2>Reviews</h2>
+    <h3>Customer Reviews:</h3>
     {% for review in reviews %}
         <div class="review">
-            <strong>{{ review.customer.user.username }}:</strong>
-            <p>Rating: {{ review.rating }} / 5</p>
+            <p><strong>Reviewed by: {{ review.customer }} (Rating: {{ review.rating }} / 5)</strong></p>
+            <p>
+                {% for star in "12345" %}
+                    {% if star|add:0 <= review.rating %}
+                       ★  
+                    {% else %}
+                       ☆  
+                    {% endif %}
+                {% endfor %}
+            </p>
             <p>{{ review.comment }}</p>
+            <p><small>Reviewed on: {{ review.created_at|date:"F j, Y, g:i a" }}</small></p>
         </div>
     {% empty %}
         <p>No reviews yet.</p>

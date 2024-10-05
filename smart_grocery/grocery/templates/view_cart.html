@@ -1,11 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Cart - Smart Grocery</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,7 +36,7 @@
         }
 
         .item-details {
-            flex-grow: 1; /* Allows the details to take up available space */
+            flex-grow: 1; 
         }
 
         .cart-item h3 {
@@ -74,10 +73,9 @@
             border-radius: 5px;
         }
 
-        /* Media Queries for Responsiveness */
         @media (max-width: 600px) {
             .cart-item {
-                flex-direction: column; /* Stack items vertically */
+                flex-direction: column; 
                 align-items: flex-start;
             }
 

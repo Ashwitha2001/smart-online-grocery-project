@@ -9,7 +9,6 @@ from django.contrib.auth.models import User
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
-        Customer.objects.create(user=instance)  # Create Customer profile as well
 
 # Signal to save user profile whenever User instance is saved
 @receiver(post_save, sender=User)

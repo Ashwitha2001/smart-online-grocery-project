@@ -1,5 +1,3 @@
-# grocery/middleware.py
-
 from django.utils.deprecation import MiddlewareMixin
 import logging
 

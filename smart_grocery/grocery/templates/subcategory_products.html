@@ -54,7 +54,6 @@
             margin: 5px;
         }
 
-        /* Notification styles */
         .notification {
             display: none;
             padding: 10px;
@@ -68,7 +67,6 @@
             z-index: 1000;
         }
 
-        /* Button styles */
         .view-cart-btn {
             display: inline-block;
             padding: 10px 20px;
@@ -121,7 +119,7 @@
     <!-- View Cart button if items are in the cart -->
     <a href="{% url 'view_cart' %}" class="view-cart-btn">View Cart (<span id="cart-count">{{ total_cart_quantity }}</span>)</a>
 
-    <!-- Notification element -->
+    <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>
@@ -136,7 +134,7 @@
                         method: 'POST',
                         body: formData,
                         headers: {
-                            'X-CSRFToken': formData.get('csrfmiddlewaretoken') // Only if CSRF is enabled
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken') 
                         }
                     })
                     .then(response => response.json())

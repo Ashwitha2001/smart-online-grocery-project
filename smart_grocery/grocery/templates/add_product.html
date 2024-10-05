@@ -11,7 +11,7 @@
             text-align: center;
         }
         h1 {
-            color: #28a745; /* Green color */
+            color: #28a745; 
         }
         form {
             background: rgba(255, 255, 255, 0.8);
@@ -21,7 +21,7 @@
             display: inline-block;
             max-width: 400px;
             width: 100%;
-            margin-bottom: 20px; /* Adds space below the form */
+            margin-bottom: 20px; 
         }
         button {
             background-color: #28a745;
@@ -31,23 +31,22 @@
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px; /* Adds space above the button */
+            margin-top: 10px; 
         }
         .back-link {
-            display: block; /* Makes the link a block element */
-            margin-top: 10px; /* Adds space above the link */
-            color: #007bff; /* Bootstrap link color */
-            text-decoration: none; /* Remove underline */
+            display: block; 
+            margin-top: 10px; 
+            color: #007bff; 
+            text-decoration: none; 
         }
         .back-link:hover {
-            text-decoration: underline; /* Underline on hover */
+            text-decoration: underline; 
         }
     </style>
 </head>
 <body>
     <h1>Add a New Product</h1>
 
-    <!-- Display form for adding a product -->
     <form method="post" action="{% url 'add_product' %}">
         {% csrf_token %}
         {{ form.as_p }}

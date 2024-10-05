@@ -19,7 +19,7 @@
         }
         h1 {
             color: #333;
-            text-align: center; /* Centered title */
+            text-align: center;
             margin-bottom: 20px;
         }
         .nav {
@@ -46,6 +46,9 @@
             border-radius: 8px;
             background-color: #f9f9f9;
         }
+        .order-card {
+            border: 1px solid #007bff; 
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -61,64 +64,76 @@
             color: #fff;
         }
         tr:hover {
-            background-color: #f1f1f1; /* Highlight on hover */
+            background-color: #f1f1f1; 
         }
         .footer {
             text-align: center;
             margin-top: 20px;
-            color: #333; /* Footer text color */
-            font-weight: bold; /* Bold footer text */
+            color: #333;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Vendor Dashboard</h1>
-    {% if user.is_authenticated %}
-    <ul>
-        <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
-    </ul>
-    
-    <h2>Products</h2>
-    <p>Number of Products: {{ product_count }}</p>
-    <ul>
-        {% for product in vendor_products %}
-        <li>{{ product.name }} - {{ product.stock }} in stock</li>
-        {% empty %}
-        <li>No products found.</li>
-        {% endfor %}
-    </ul>
-    
-    <h2>Orders</h2>
-    <p>Number of Orders: {{ orders.count }}</p>
-    {% if orders %}
+    <div class="container">
+        <h1>Welcome to the Vendor Dashboard</h1>
+        <h3>{{ welcome_message }}</h3>
+        {% if user.is_authenticated %}
         <ul>
-            {% for order in orders %}
-                <li>{{ order.product.name }} - {{ order.status }}</li>
-            {% endfor %}
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'logout_view' %}">Logout</a></li>
         </ul>
-    {% else %}
-        <p>No orders found.</p>
-    {% endif %}
- 
-    <h2>Manage Products</h2>
-    <a href="{% url 'add_product' %}">Add Product</a>
-    <ul>
-        {% for product in vendor_products %}
-        <li>{{ product.name }} - 
-            <a href="{% url 'update_product' product.id %}">Update</a> | 
-            <a href="{% url 'delete_product' product.id %}">Delete</a>
-        </li>
-        {% empty %}
-        <li>No products to manage.</li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>You need to <a href="{% url 'login' %}">log in</a> to access this page.</p>
-    {% endif %}
 
-    <div class="footer">
-        <p>&copy; 2024 Smart Grocery</p> <!-- Company name -->
+        <!-- Products Section -->
+        <div class="card">
+            <h2>Products</h2>
+            <p>Number of Products: {{ product_count }}</p>
+            <ul>
+                {% for product in vendor_products %}
+                <li>{{ product.name }} - {{ product.stock }} in stock</li>
+                {% empty %}
+                <li>No products found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="card order-card">
+            <h2>Orders</h2>
+            <p>Number of Orders: {{ order_count }}</p>
+            {% if orders %}
+                <ul>
+                    {% for order in orders %}
+                        <li>{{ order.product.name }} - {{ order.status }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No orders found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Manage Products Section -->
+        <div class="card">
+            <h2>Manage Products</h2>
+            <a href="{% url 'add_product' %}">Add Product</a>
+            <ul>
+                {% for product in vendor_products %}
+                <li>{{ product.name }} - 
+                    <a href="{% url 'update_product' product.id %}">Update</a> | 
+                    <a href="{% url 'delete_product' product.id %}">Delete</a>
+                </li>
+                {% empty %}
+                <li>No products to manage.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <p>You need to <a href="{% url 'login' %}">log in</a> to access this page.</p>
+        {% endif %}
+
+        <div class="footer">
+            <p>&copy; 2024 Smart Grocery</p>
+        </div>
     </div>
 </body>
 </html>

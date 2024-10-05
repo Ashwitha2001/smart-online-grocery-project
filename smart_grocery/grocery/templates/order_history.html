@@ -65,7 +65,7 @@
             <td>{{ order.status }}</td>
             <td>{{ order.total_amount }}</td>
             <td>
-                <a href="{% url 'order_detail' order.id %}">View Details</a>
+                <a href="{% url 'order_detail' order_id=order.id %}">View Details</a>
             </td>
         </tr>
         {% endfor %}

@@ -36,24 +36,38 @@
     </style>
 </head>
 <body>
+
     <h1>User Activity Report</h1>
+
     <table>
-        <tr>
-            <th>User</th>
-            <th>Activity</th>
-            <th>Date</th>
-        </tr>
-        {% for activity in activity_data %}
-        <tr>
-            <td>{{ activity.user.username }}</td>
-            <td>{{ activity.action }}</td>
-            <td>{{ activity.timestamp }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="3">No activity found.</td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Activity</th>
+                <th>Order ID</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if activities %}
+                {% for activity in activities %}
+                <tr>
+                    <td>{{ activity.user.username }}</td>
+                    <td>{{ activity.action }}</td>
+                    <td>{{ activity.order.id }}</td>
+                    <td>{{ activity.timestamp|date:"d M Y, H:i:s" }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <p>Number of activities: {{ activities|length }}</p>
+
+                    <td colspan="4">No activity found.</td>
+                </tr>
+            {% endif %}
+        </tbody>
     </table>
+    
+ 
 </body>
-</html>
+</html>    

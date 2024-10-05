@@ -78,7 +78,7 @@
     <h1>Delivery Management</h1>
     <ul>
         <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
+        <li><a href="{% url 'logout_view' %}">Logout</a></li>
     </ul>
 
     <h2>Orders Requiring Delivery Assignment</h2>
@@ -99,7 +99,7 @@
                 <td>{{ order.id }}</td>
                 <td>{{ order.customer.user.username }}</td>
                 <td>{{ order.customer.address }}</td>
-                <td>{{ order.ordered_at }}</td>
+                <td>{{ order.ordered_at|date:"Y-m-d H:i:s A" }}</td>
                 <td>
                     <ul>
                         {% for item in order.items.all %}

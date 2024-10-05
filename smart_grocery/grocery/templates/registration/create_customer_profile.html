@@ -71,7 +71,6 @@
 <body>
     <h1>Create Customer Profile</h1>
     
-    <!-- Display success or error messages if any -->
     <div class="messages">
         {% if messages %}
             {% for message in messages %}
@@ -83,20 +82,19 @@
     <form method="POST" action="{% url 'create_customer_profile' %}">
         {% csrf_token %}
         
-        <!-- Render form fields dynamically -->
-        {{ form.non_field_errors }} <!-- Global form errors -->
+        {{ form.non_field_errors }} 
         
         <label for="id_address">Address:</label>
-        {{ form.address.errors }} <!-- Address specific errors -->
-        {{ form.address }} <!-- Address input field -->
+        {{ form.address.errors }} 
+        {{ form.address }} 
 
         <label for="id_phone_number">Phone Number:</label>
-        {{ form.phone_number.errors }} <!-- Phone number specific errors -->
-        {{ form.phone_number }} <!-- Phone number input field -->
+        {{ form.phone_number.errors }} 
+        {{ form.phone_number }} 
 
         <label for="id_email">Email:</label>
-        {{ form.email.errors }} <!-- Email specific errors -->
-        {{ form.email }} <!-- Email input field -->
+        {{ form.email.errors }} 
+        {{ form.email }} 
 
         <button type="submit">Submit</button>
     </form>

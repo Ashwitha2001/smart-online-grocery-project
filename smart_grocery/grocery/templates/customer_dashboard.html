@@ -70,13 +70,13 @@
             color: #fff;
         }
         tr:hover {
-            background-color: #f1f1f1; /* Highlight on hover */
+            background-color: #f1f1f1; 
         }
         .footer {
             text-align: center;
             margin-top: 20px;
-            color: #333; /* Footer text color */
-            font-weight: bold; /* Bold footer text */
+            color: #333; 
+            font-weight: bold; 
         }
     </style>
 </head>
@@ -86,11 +86,12 @@
     {% if user.is_authenticated %}
     <ul>
         <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
+        <li><a href="{% url 'logout_view' %}">Logout</a></li>
     </ul>
 
     <h2>Your Orders</h2>
     <p>Number of Orders: {{ order_count }}</p>
+    <p>Number of Delivered Orders: {{ delivery_count }}</p>
 
     {% if orders %}
         <table>
@@ -128,7 +129,7 @@
     {% endif %}
 
     <div class="footer">
-        <p>&copy; 2024 Smart Grocery</p> <!-- Company name -->
+        <p>&copy; 2024 Smart Grocery</p> 
     </div>
 </body>
 </html>
