@@ -23,6 +23,14 @@ class Profile(models.Model):
     def is_complete(self):
         return all([self.address, self.phone_number])
 
+    def update_assigned_orders(self):
+        assigned_orders_count = Delivery.objects.filter(
+            delivery_partner=self,
+            created_at__date=timezone.now().date()
+        ).count()
+
+        print(f"Assigned orders updated to {assigned_orders_count}")
+        return assigned_orders_count
 
 class Admin(models.Model):
     profile = models.OneToOneField('Profile', on_delete=models.CASCADE)  
@@ -141,6 +149,13 @@ class Delivery(models.Model):
     scheduled_at = models.DateTimeField(default=timezone.now)  # Set manually when scheduling
     delivered_at = models.DateTimeField(null=True, blank=True)  # Set when delivered
     created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True)  # Automatically set when the delivery record is created
+    
+    def save(self, *args, **kwargs):
+        super(Delivery, self).save(*args, **kwargs)
+        # Update assigned orders count after saving a delivery
+        if self.delivery_partner:
+            delivery_personnel = self.delivery_partner.deliverypersonnel
+            delivery_personnel.update_assigned_orders()
 
     def update_status(self):
         """Update the status of the delivery based on the current conditions."""
@@ -169,20 +184,30 @@ class DeliveryPersonnel(models.Model):
     max_daily_assignments = models.PositiveIntegerField(default=10)  # Max orders assignable per day
     assigned_orders = models.PositiveIntegerField(default=0)  # Current assigned orders for the day
 
+    def update_assigned_orders(self):
+        today = timezone.now().date()
+        # Fetch deliveries assigned to this delivery personnel
+        assigned_count = Delivery.objects.filter(
+            delivery_partner=self.profile,
+            created_at__date=today
+        ).count()
+        print(f"Assigned count for {self.profile.user.username}: {assigned_count}")  # Debug output
+        self.assigned_orders = assigned_count
+        self.save()
+        
+
+    def can_assign_more_orders(self):
+        """Check if the delivery partner can take more orders for the day."""
+        return self.assigned_orders < self.max_daily_assignments
+
     def __str__(self):
         return f"Delivery Personnel: {self.profile.user.username} - {self.vehicle_type or 'Unknown vehicle'}"
-    
+
     class Meta:
         permissions = [
             ("can_manage_deliveries", "Can manage deliveries"),
             ("can_edit_own_profile", "Can edit own profile"),
         ]
-
-    def can_assign_more_orders(self):
-        # Check if the delivery partner has fewer than 10 assigned orders for the day
-        today = timezone.now().date()
-        orders_today = self.profile.deliveries.filter(created_at__date=today).count()
-        return orders_today < 10
 
 class Vendor(models.Model):
     profile = models.OneToOneField('Profile', on_delete=models.CASCADE)

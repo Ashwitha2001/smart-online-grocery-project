@@ -36,7 +36,6 @@ admin.site.register(User, UserAdmin)
 
 # Registering other models
 admin.site.register(Admin)
-admin.site.register(DeliveryPersonnel)
 admin.site.register(Profile)
 admin.site.register(Product)
 admin.site.register(OrderItem)
@@ -119,3 +118,12 @@ class CartAdmin(admin.ModelAdmin):
         return qs  
 
 admin.site.register(Cart,CartAdmin)
+
+
+@admin.register(DeliveryPersonnel)
+class DeliveryPersonnelAdmin(admin.ModelAdmin):
+    list_display = ['profile', 'assigned_orders', 'max_daily_assignments']
+    
+    def assigned_orders(self, obj):
+        obj.update_assigned_orders() 
+        return obj.assigned_orders 

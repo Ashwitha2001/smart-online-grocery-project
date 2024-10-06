@@ -1,7 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
-from .models import Profile, Order, Vendor, Customer
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from .models import Profile, Order, Vendor, Customer, Delivery, DeliveryPersonnel
 from django.contrib.auth.models import User
 
 # Signal to create user profile when a User instance is created
@@ -36,3 +38,11 @@ def save_user_customer(sender, instance, **kwargs):
         instance.customer.save()  # Save the Customer instance if it exists
     except Customer.DoesNotExist:
         print(f"No Customer profile found for user: {instance.username}")
+
+
+# Signal handlers to update assigned orders count
+@receiver(post_save, sender=Delivery)
+def update_delivery_personnel(sender, instance, created, **kwargs):
+    if created:
+        delivery_personnel = instance.delivery_partner
+        delivery_personnel.update_assigned_orders()
