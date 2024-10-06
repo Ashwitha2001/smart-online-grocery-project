@@ -149,7 +149,7 @@ class Delivery(models.Model):
     scheduled_at = models.DateTimeField(default=timezone.now)  # Set manually when scheduling
     delivered_at = models.DateTimeField(null=True, blank=True)  # Set when delivered
     created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True)  # Automatically set when the delivery record is created
-    
+
     def save(self, *args, **kwargs):
         super(Delivery, self).save(*args, **kwargs)
         # Update assigned orders count after saving a delivery
@@ -161,10 +161,14 @@ class Delivery(models.Model):
         """Update the status of the delivery based on the current conditions."""
         if self.delivered_at:
             self.status = 'Delivered'
-        elif self.status in ['Placed', 'Processing', 'Shipped']:
-            self.status = 'Out for Delivery'
+        elif self.status == 'Placed':
+            self.status = 'Placed'
+        elif self.status == 'Processing':
+            self.status = 'Processing'
+        elif self.status == 'Shipped':
+            self.status = 'Shipped'
         self.save()
-
+        
     def mark_as_delivered(self):
         """Mark the delivery as delivered and update the status."""
         self.delivered_at = timezone.now()

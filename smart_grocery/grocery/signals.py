@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
+from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .models import Profile, Order, Vendor, Customer, Delivery, DeliveryPersonnel
@@ -46,3 +47,12 @@ def update_delivery_personnel(sender, instance, created, **kwargs):
     if created:
         delivery_personnel = instance.delivery_partner
         delivery_personnel.update_assigned_orders()
+
+
+@receiver(post_save, sender=Order)
+def update_delivery_status(sender, instance, **kwargs):
+    if instance.status == 'Delivered':
+        delivery = Delivery.objects.get(order=instance)
+        delivery.status = 'Delivered'
+        delivery.delivered_at = timezone.now()
+        delivery.save()
