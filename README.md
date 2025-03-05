@@ -1,4 +1,4 @@
-# Smart Grocery Delivery System
+# Smart Grocery Online Delivery System
 
 ## Overview
 Smart Grocery is an online grocery delivery system built using Django. It allows users to browse groceries, place orders, and track deliveries. The platform supports multiple user roles, including customers, vendors, delivery personnel, and admins.
